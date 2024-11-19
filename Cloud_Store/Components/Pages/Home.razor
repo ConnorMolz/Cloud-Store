@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Cloud_Store.Models.ViewModels
+@using Cloud_Store.Services
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles ="User, Administrator")]
 
@@ -22,4 +24,39 @@
             </div>
         </div>
     </div>
+    <div>
+        @foreach (var folder in Model.Folders)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@folder</h5>
+                    </div>
+                </div>
+            </div>
+        }
+        @foreach (var file in Model.Files)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@file</h5>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
+
+@code
+{
+    private HomeViewModel Model { get; set; }
+    private string _path = "/";
+    public required FileService FileService { get; set; } = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitializedAsync();
+        Model = FileService.GetFileListAsync(_path).Result;
+    }
+}
