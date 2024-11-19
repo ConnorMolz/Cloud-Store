@@ -26,8 +26,13 @@
     </div>
     <div>
         <div class="card">
-            <div class="card-body">
-                <span><button @onclick="GoBack">Back</button></span>@_showPath
+            <div class="card-body d-flex align-items-center">
+                <div class="me-3">
+                    <button class="btn btn-outline-primary" @onclick="GoBack">Back</button>
+                </div>
+                <div class="flex-grow-1 text-center">
+                    <p class="mb-0">@_showPath</p>
+                </div>
             </div>
         </div>
         @foreach (var folder in Model.Folders)
@@ -92,6 +97,14 @@
     
     private string SlicePath(string path)
     {
+        Console.WriteLine("Slicer:");
+        Console.WriteLine(_path);
+        Console.WriteLine("   ");
+        Console.WriteLine(_rootPath);
+        if (_path == _rootPath)
+        {
+            return "\\";
+        }
         return path.Replace(_rootPath+"\\", "");
     }
 }
