@@ -1,4 +1,7 @@
 ﻿@page "/weather"
+@using Microsoft.AspNetCore.Authorization
+@attribute [StreamRendering]
+@attribute [Authorize(Roles ="Administrator")]
 
 <PageTitle>Weather</PageTitle>
 
