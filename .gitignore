@@ -4,4 +4,7 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 /Cloud_Store/Database/**.db
-/Cloud_Store/Files/
+/Cloud_Store/Files/**/*
+/Cloud_Store/Logs/**/*
+/Cloud_Store/Temp/**/*
+.idea
