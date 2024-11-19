@@ -25,12 +25,17 @@
         </div>
     </div>
     <div>
+        <div class="card">
+            <div class="card-body">
+                <span><button @onclick="GoBack">Back</button></span>@_rootPath
+            </div>
+        </div>
         @foreach (var folder in Model.Folders)
         {
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@folder</h5>
+                    <div class="card-body" @onclick="() => { NavigateToFolder(folder); }">
+                        <h5 class="card-title link-underline">@folder</h5>
                     </div>
                 </div>
             </div>
@@ -51,12 +56,34 @@
 @code
 {
     private HomeViewModel Model { get; set; }
-    private string _path = "/";
+    private string _path = "";
+    private bool showRevert = false;
+    private string _rootPath = "";
     public required FileService FileService { get; set; } = new();
     
     protected override async Task OnInitializedAsync()
     {
-        base.OnInitializedAsync();
+        await base.OnInitializedAsync();
         Model = FileService.GetFileListAsync(_path).Result;
+        _path = Model.CurrentPath;
+        Console.WriteLine(_path);
+        _rootPath = _path;
     }
+    
+    private void NavigateToFolder(string folder)
+    {
+        _path = Path.Combine(_path, folder);
+        showRevert = _path != _rootPath;
+        Model = FileService.GetFileListAsync(_path).Result;
+        _path = Model.CurrentPath;
+    }
+    
+    private void GoBack()
+    {
+        _path = FileService.RemoveLastFolder(_path);
+        showRevert = _path != _rootPath;
+        Model = FileService.GetFileListAsync(_path).Result;
+        _path = Model.CurrentPath;
+    }
+    
 }

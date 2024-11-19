@@ -9,6 +9,7 @@ public interface IFileService
     Task<FileStream> GetFileAsync(string path);
     Task DeleteFileAsync(string path);
     Task<HomeViewModel> GetFileListAsync(string path);
+    string RemoveLastFolder(string path);
 }
 
 public class FileService : IFileService
@@ -39,7 +40,15 @@ public class FileService : IFileService
     public Task<HomeViewModel> GetFileListAsync(string path)
     {
         Console.WriteLine(_rootpath);
-        string searchPath = Path.Combine(_rootpath);
+        string searchPath;
+        if (path == "")
+        {
+            searchPath = _rootpath;
+        }
+        else
+        {
+            searchPath = path;
+        }
         Console.WriteLine(searchPath);
         string[] files = Directory.GetFiles(searchPath);
         string[] folders = Directory.GetDirectories(searchPath);
@@ -57,7 +66,18 @@ public class FileService : IFileService
         {
             Files = files.ToList(),
             Folders = folders.ToList(),
-            CurrentPath = path
+            CurrentPath = searchPath
         });
+    }
+    
+    public string RemoveLastFolder(string path)
+    {
+        var folders = path.Split("/");
+        var newPath = "";
+        for(int i = 0; i < folders.Length - 1; i++)
+        {
+            newPath += folders[i];
+        }
+        return newPath;
     }
 }
