@@ -1,0 +1,6 @@
+﻿services:
+  cloud_store:
+    image: cloud_store
+    build:
+      context: .
+      dockerfile: Cloud_Store/Dockerfile

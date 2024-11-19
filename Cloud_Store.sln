@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloud_Store", "Cloud_Store\Cloud_Store.csproj", "{F54014B2-539D-4B31-8B9C-D2258FAE63B0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A802B7B-7ACA-4C89-B00E-AF07CB7DDBC6}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F54014B2-539D-4B31-8B9C-D2258FAE63B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F54014B2-539D-4B31-8B9C-D2258FAE63B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F54014B2-539D-4B31-8B9C-D2258FAE63B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F54014B2-539D-4B31-8B9C-D2258FAE63B0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
