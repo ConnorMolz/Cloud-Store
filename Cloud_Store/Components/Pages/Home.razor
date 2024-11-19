@@ -27,7 +27,7 @@
     <div>
         <div class="card">
             <div class="card-body">
-                <span><button @onclick="GoBack">Back</button></span>@_rootPath
+                <span><button @onclick="GoBack">Back</button></span>@_showPath
             </div>
         </div>
         @foreach (var folder in Model.Folders)
@@ -59,6 +59,7 @@
     private string _path = "";
     private bool showRevert = false;
     private string _rootPath = "";
+    private string _showPath = "";
     public required FileService FileService { get; set; } = new();
     
     protected override async Task OnInitializedAsync()
@@ -68,6 +69,7 @@
         _path = Model.CurrentPath;
         Console.WriteLine(_path);
         _rootPath = _path;
+        _showPath = SlicePath(_path);
     }
     
     private void NavigateToFolder(string folder)
@@ -76,6 +78,7 @@
         showRevert = _path != _rootPath;
         Model = FileService.GetFileListAsync(_path).Result;
         _path = Model.CurrentPath;
+        _showPath = SlicePath(_path);
     }
     
     private void GoBack()
@@ -84,6 +87,11 @@
         showRevert = _path != _rootPath;
         Model = FileService.GetFileListAsync(_path).Result;
         _path = Model.CurrentPath;
+        _showPath = SlicePath(_path);
     }
     
+    private string SlicePath(string path)
+    {
+        return path.Replace(_rootPath+"\\", "");
+    }
 }
