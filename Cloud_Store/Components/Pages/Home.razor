@@ -27,7 +27,7 @@
     <div>
         <div class="card">
             <div class="card-body d-flex align-items-center justify-content-between">
-                @if (showRevert)
+                @if (_showRevert)
                 {
                     <div>
                         <button class="btn btn-outline-primary" @onclick="GoBack">Back</button>
@@ -83,7 +83,7 @@
 {
     private HomeViewModel Model { get; set; }
     private string _path = "";
-    private bool showRevert = false;
+    private bool _showRevert;
     private string _rootPath = "";
     private string _showPath = "";
     public required FileService FileService { get; set; } = new();
@@ -100,7 +100,7 @@
     private void NavigateToFolder(string folder)
     {
         _path = Path.Combine(_path, folder);
-        showRevert = _path != _rootPath;
+        _showRevert = _path != _rootPath;
         Model = FileService.GetFileListAsync(_path).Result;
         _path = Model.CurrentPath;
         _showPath = SlicePath(_path);
@@ -109,7 +109,7 @@
     private async Task GoBack()
     {
         _path = FileService.RemoveLastFolder(_path);
-        showRevert = _path != _rootPath;
+        _showRevert = _path != _rootPath;
         Model = await FileService.GetFileListAsync(_path);
         _path = Model.CurrentPath;
         _showPath = SlicePath(_path);
