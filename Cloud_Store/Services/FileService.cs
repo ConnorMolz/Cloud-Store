@@ -72,12 +72,7 @@ public class FileService : IFileService
     
     public string RemoveLastFolder(string path)
     {
-        var folders = path.Split("/");
-        var newPath = "";
-        for(int i = 0; i < folders.Length - 1; i++)
-        {
-            newPath += folders[i];
-        }
-        return newPath;
+        path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return Path.GetDirectoryName(path) ?? path;
     }
 }

@@ -26,12 +26,23 @@
     </div>
     <div>
         <div class="card">
-            <div class="card-body d-flex align-items-center">
-                <div class="me-3">
-                    <button class="btn btn-outline-primary" @onclick="GoBack">Back</button>
-                </div>
+            <div class="card-body d-flex align-items-center justify-content-between">
+                @if (showRevert)
+                {
+                    <div>
+                        <button class="btn btn-outline-primary" @onclick="GoBack">Back</button>
+                    </div>
+                }
                 <div class="flex-grow-1 text-center">
                     <p class="mb-0">@_showPath</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-success me-2" >
+                        <i class="bi bi-upload me-1"></i>Upload File
+                    </button>
+                    <button class="btn btn-outline-primary" >
+                        <i class="bi bi-folder-plus me-1"></i>Create Folder
+                    </button>
                 </div>
             </div>
         </div>
@@ -86,11 +97,11 @@
         _showPath = SlicePath(_path);
     }
     
-    private void GoBack()
+    private async Task GoBack()
     {
         _path = FileService.RemoveLastFolder(_path);
         showRevert = _path != _rootPath;
-        Model = FileService.GetFileListAsync(_path).Result;
+        Model = await FileService.GetFileListAsync(_path);
         _path = Model.CurrentPath;
         _showPath = SlicePath(_path);
     }
@@ -101,10 +112,11 @@
         Console.WriteLine(_path);
         Console.WriteLine("   ");
         Console.WriteLine(_rootPath);
+        path = path.Replace("\\", "/");
         if (_path == _rootPath)
         {
-            return "\\";
+            return "/";
         }
-        return path.Replace(_rootPath+"\\", "");
+        return path.Replace(_rootPath.Replace("\\","/")+"/", "");
     }
 }

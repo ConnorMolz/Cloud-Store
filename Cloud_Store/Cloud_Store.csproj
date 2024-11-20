@@ -33,6 +33,7 @@
 
     <ItemGroup>
         <Folder Include="Database\" />
+        <Folder Include="Files\Folder\Folder2\Text3.txt\" />
         <Folder Include="Migrations\" />
     </ItemGroup>
 
