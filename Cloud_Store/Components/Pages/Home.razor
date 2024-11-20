@@ -114,18 +114,13 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="upload files" class="form-label"></label>
-                    <input type="file"
-                           multiple="multiple"
-                           class="form-control"
-                           id="upload files"
-                           @bind="FormModel.NewFiles"
-                           placeholder="Select files" />
+                    <label for="upload files" class="form-label">Select Files</label>
+                    <InputFile multiple class="form-control" id="upload files" OnChange="HandleFileSelection" />
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="CloseUploadFileForm">Cancel</button>
-                <button type="button" class="btn btn-primary" @onclick="UploadFiles">Create</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadFiles">Upload</button>
             </div>
         </div>
     </div>
@@ -140,6 +135,7 @@
     private string _rootPath = "";
     private string _showPath = "";
     public required FileService FileService { get; set; } = new();
+    private List<IBrowserFile> _selectedFiles = new();
     
     protected override async Task OnInitializedAsync()
     {
@@ -188,7 +184,7 @@
 
     private async Task CreateFolder()
     {
-        if(FormModel.NewFolderName == string.Empty)
+        if(string.IsNullOrEmpty(FormModel.NewFolderName))
         {
             return;
         }
@@ -210,15 +206,40 @@
         FormModel.NewFolderName = string.Empty;
     }
     
+    private void HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        _selectedFiles = e.GetMultipleFiles().ToList();
+        FormModel.NewFiles = _selectedFiles.Select(f => f.Name).ToArray();
+    }
+
+    private async Task UploadFiles()
+    {
+        if (_selectedFiles == null || _selectedFiles.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var file in _selectedFiles)
+        {
+            try 
+            {
+                using var stream = file.OpenReadStream();
+                await FileService.WriteFileAsync(file.Name, stream);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file {file.Name}: {ex.Message}");
+            }
+        }
+
+        await RefreshFileList();
+        CloseUploadFileForm();
+    }
+
     private void CloseUploadFileForm()
     {
         FormModel.ShowFileForm = false;
-        FormModel.NewFiles = null;
-    }
-    
-    private void UploadFiles()
-    {
-        // Todo: Implement file upload
-        CloseUploadFileForm();
+        _selectedFiles.Clear();
+        FormModel.NewFiles = [];
     }
 }
