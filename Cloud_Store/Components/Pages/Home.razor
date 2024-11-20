@@ -40,7 +40,7 @@
                     <button class="btn btn-outline-success me-2" >
                         <i class="bi bi-upload me-1"></i>Upload File
                     </button>
-                    <button class="btn btn-outline-primary" >
+                    <button class="btn btn-outline-primary" @onclick="CreateFolder">
                         <i class="bi bi-folder-plus me-1"></i>Create Folder
                     </button>
                 </div>
@@ -83,7 +83,6 @@
         await base.OnInitializedAsync();
         Model = FileService.GetFileListAsync(_path).Result;
         _path = Model.CurrentPath;
-        Console.WriteLine(_path);
         _rootPath = _path;
         _showPath = SlicePath(_path);
     }
@@ -108,15 +107,32 @@
     
     private string SlicePath(string path)
     {
-        Console.WriteLine("Slicer:");
-        Console.WriteLine(_path);
-        Console.WriteLine("   ");
-        Console.WriteLine(_rootPath);
         path = path.Replace("\\", "/");
         if (_path == _rootPath)
         {
             return "/";
         }
         return path.Replace(_rootPath.Replace("\\","/")+"/", "");
+    }
+    
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var stream = file.OpenReadStream();
+        await FileService.WriteFileAsync(file.Name, stream);
+        await RefreshFileList();
+    }
+
+    private async Task CreateFolder()
+    {
+        Console.WriteLine(_path);
+        string folderName = "NewFolder_" + DateTime.Now.Ticks;
+        await FileService.CreateFolderAsync(_path, folderName);
+        await RefreshFileList();
+    }
+
+    private async Task RefreshFileList()
+    {
+        Model = await FileService.GetFileListAsync(_path);
     }
 }

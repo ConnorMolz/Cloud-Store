@@ -5,9 +5,11 @@ using System.IO;
 
 public interface IFileService
 {
-    Task WriteFileAsync();
-    Task<FileStream> GetFileAsync(string path);
-    Task DeleteFileAsync(string path);
+    Task WriteFileAsync(string fileName, Stream fileStream);
+    Task<FileStream> GetFileAsync(string fileName);
+    Task DeleteFileAsync(string fileName);
+    Task CreateFolderAsync(string currentPath, string folderName);
+    Task DeleteFolderAsync(string folderName);
     Task<HomeViewModel> GetFileListAsync(string path);
     string RemoveLastFolder(string path);
 }
@@ -22,24 +24,39 @@ public class FileService : IFileService
         _rootpath = Path.Combine(_rootpath, "Files");
     }
     
-    public Task WriteFileAsync()
+    public async Task WriteFileAsync(string fileName, Stream fileStream)
     {
-        throw new NotImplementedException();
+        string fullPath = Path.Combine(_rootpath, fileName);
+        using var destinationStream = File.Create(fullPath);
+        await fileStream.CopyToAsync(destinationStream);
     }
 
-    public Task<FileStream> GetFileAsync(string path)
+    public async Task<FileStream> GetFileAsync(string fileName)
     {
-        throw new NotImplementedException();
+        string fullPath = Path.Combine(_rootpath, fileName);
+        return File.OpenRead(fullPath);
     }
 
-    public Task DeleteFileAsync(string path)
+    public async Task DeleteFileAsync(string fileName)
     {
-        throw new NotImplementedException();
+        string fullPath = Path.Combine(_rootpath, fileName);
+        File.Delete(fullPath);
+    }
+
+    public async Task CreateFolderAsync(string currentPath, string folderName)
+    {
+        string fullPath = Path.Combine(currentPath, folderName);
+        Directory.CreateDirectory(fullPath);
+    }
+
+    public async Task DeleteFolderAsync(string folderName)
+    {
+        string fullPath = Path.Combine(_rootpath, folderName);
+        Directory.Delete(fullPath, true);
     }
 
     public Task<HomeViewModel> GetFileListAsync(string path)
     {
-        Console.WriteLine(_rootpath);
         string searchPath;
         if (path == "")
         {
@@ -49,7 +66,6 @@ public class FileService : IFileService
         {
             searchPath = path;
         }
-        Console.WriteLine(searchPath);
         string[] files = Directory.GetFiles(searchPath);
         string[] folders = Directory.GetDirectories(searchPath);
         
