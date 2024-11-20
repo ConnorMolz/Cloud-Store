@@ -37,10 +37,10 @@
                     <p class="mb-0">@_showPath</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-success me-2" >
+                    <button class="btn btn-outline-success me-2" @onclick="() => { FormModel.ShowFileForm = true; }" >
                         <i class="bi bi-upload me-1"></i>Upload File
                     </button>
-                    <button class="btn btn-outline-primary" @onclick="CreateFolder">
+                    <button class="btn btn-outline-primary" @onclick="() => { FormModel.ShowNewFolderForm = true; }">
                         <i class="bi bi-folder-plus me-1"></i>Create Folder
                     </button>
                 </div>
@@ -79,9 +79,62 @@
     </div>
 </div>
 
+
+<div class="modal @(FormModel.ShowNewFolderForm ? "show" : "")" tabindex="-1" style="display: @(FormModel.ShowNewFolderForm ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Folder</h5>
+                <button type="button" class="btn-close" @onclick="CloseNewFolderForm"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newFolderName" class="form-label">Folder Name</label>
+                    <input type="text"
+                           class="form-control"
+                           id="newFolderName"
+                           @bind="FormModel.NewFolderName"
+                           placeholder="Enter folder name" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseNewFolderForm">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="CreateFolder">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal @(FormModel.ShowFileForm ? "show" : "")" tabindex="-1" style="display: @(FormModel.ShowFileForm ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload new Files</h5>
+                <button type="button" class="btn-close" @onclick="CloseUploadFileForm"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="upload files" class="form-label"></label>
+                    <input type="file"
+                           multiple="multiple"
+                           class="form-control"
+                           id="upload files"
+                           @bind="FormModel.NewFiles"
+                           placeholder="Select files" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseUploadFileForm">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadFiles">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code
 {
     private HomeViewModel Model { get; set; }
+    private HomeViewFormModel FormModel { get; set; } = new();
     private string _path = "";
     private bool _showRevert;
     private string _rootPath = "";
@@ -135,14 +188,37 @@
 
     private async Task CreateFolder()
     {
+        if(FormModel.NewFolderName == string.Empty)
+        {
+            return;
+        }
         Console.WriteLine(_path);
-        string folderName = "NewFolder_" + DateTime.Now.Ticks;
+        string folderName = FormModel.NewFolderName;
         await FileService.CreateFolderAsync(_path, folderName);
+        CloseNewFolderForm();
         await RefreshFileList();
     }
 
     private async Task RefreshFileList()
     {
         Model = await FileService.GetFileListAsync(_path);
+    }
+    
+    private void CloseNewFolderForm()
+    {
+        FormModel.ShowNewFolderForm = false;
+        FormModel.NewFolderName = string.Empty;
+    }
+    
+    private void CloseUploadFileForm()
+    {
+        FormModel.ShowFileForm = false;
+        FormModel.NewFiles = null;
+    }
+    
+    private void UploadFiles()
+    {
+        // Todo: Implement file upload
+        CloseUploadFileForm();
     }
 }
