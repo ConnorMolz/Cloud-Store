@@ -19,7 +19,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.Cookie.Name = "next_cloud_clone_cookie";
-        options.LoginPath = "/login";
+        options.LoginPath = "/";
         options.LogoutPath = "/logout";
         options.AccessDeniedPath = "/access-denied";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(45);
