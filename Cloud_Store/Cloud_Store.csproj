@@ -37,4 +37,8 @@
         <Folder Include="Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Include="wwwroot\JS\bootstrap-interop.js" />
+    </ItemGroup>
+
 </Project>
