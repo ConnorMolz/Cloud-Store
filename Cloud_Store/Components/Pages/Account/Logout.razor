@@ -34,7 +34,7 @@
         _confirmed = true;
         await AuthService.LogoutAsync();
         await ((CustomAuthStateProvider)AuthStateProvider).UpdateAuthenticationState(null);
-        NavigationManager.NavigateTo("/login", true);
+        NavigationManager.NavigateTo("/", true);
     }
 
     private void Cancel()
