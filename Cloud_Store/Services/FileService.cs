@@ -6,8 +6,8 @@ using System.IO;
 public interface IFileService
 {
     Task WriteFileAsync(string fileName, Stream fileStream);
-    Task<FileStream> GetFileAsync(string fileName);
-    Task DeleteFileAsync(string fileName);
+    Task<FileStream> GetFileAsync(string path, string fileName);
+    Task DeleteFileAsync(string path, string fileName);
     Task CreateFolderAsync(string currentPath, string folderName);
     Task DeleteFolderAsync(string folderName);
     Task<HomeViewModel> GetFileListAsync(string path);
@@ -31,15 +31,15 @@ public class FileService : IFileService
         await fileStream.CopyToAsync(destinationStream);
     }
 
-    public async Task<FileStream> GetFileAsync(string fileName)
+    public async Task<FileStream> GetFileAsync(string path, string fileName)
     {
-        string fullPath = Path.Combine(_rootpath, fileName);
+        string fullPath = Path.Combine(path, fileName);
         return File.OpenRead(fullPath);
     }
 
-    public async Task DeleteFileAsync(string fileName)
+    public async Task DeleteFileAsync(string path, string fileName)
     {
-        string fullPath = Path.Combine(_rootpath, fileName);
+        string fullPath = Path.Combine(path, fileName);
         File.Delete(fullPath);
     }
 
