@@ -6,7 +6,7 @@ using System.IO;
 public interface IFileService
 {
     Task WriteFileAsync(string fileName, Stream fileStream);
-    Task<FileStream> GetFileAsync(string path, string fileName);
+    Task<Stream> GetFileAsync(string path, string fileName);
     Task DeleteFileAsync(string path, string fileName);
     Task CreateFolderAsync(string currentPath, string folderName);
     Task DeleteFolderAsync(string folderName);
@@ -31,10 +31,18 @@ public class FileService : IFileService
         await fileStream.CopyToAsync(destinationStream);
     }
 
-    public async Task<FileStream> GetFileAsync(string path, string fileName)
+    public async Task<Stream> GetFileAsync(string path, string fileName)
     {
         string fullPath = Path.Combine(path, fileName);
-        return File.OpenRead(fullPath);
+        
+        // Ensure the file exists
+        if (!File.Exists(fullPath))
+        {
+            throw new FileNotFoundException($"File {fileName} not found in the specified path.");
+        }
+
+        // Return a FileStream
+        return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 
     public async Task DeleteFileAsync(string path, string fileName)

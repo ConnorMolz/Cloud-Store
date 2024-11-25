@@ -247,9 +247,16 @@
     {
         try 
         {
-            // Implement file download logic
-            // This might involve calling a method in FileService to get the file stream
-            await FileService.GetFileAsync(_path, fileName);
+            // Get the file stream from the FileService
+            var fileStream = await FileService.GetFileAsync(_path, fileName);
+            
+            // Convert stream to byte array
+            using var memoryStream = new MemoryStream();
+            await fileStream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+
+            // Use JavaScript interop to trigger download
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, Convert.ToBase64String(fileBytes));
         }
         catch (Exception ex)
         {
