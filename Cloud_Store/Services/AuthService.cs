@@ -16,6 +16,7 @@ public class AuthService : IAuthService
     private readonly CloudStoreContext _dbContext;
     private readonly ProtectedSessionStorage _sessionStorage;
     private readonly NavigationManager _navigationManager;
+    private HashingService _hashingService;
 
     public AuthService(
         CloudStoreContext dbContext,
@@ -25,6 +26,7 @@ public class AuthService : IAuthService
         _dbContext = dbContext;
         _sessionStorage = sessionStorage;
         _navigationManager = navigationManager;
+        _hashingService = new HashingService();
     }
 
     public async Task<bool> AuthenticateAsync(string username, string password)
@@ -32,7 +34,7 @@ public class AuthService : IAuthService
         var userAccount = _dbContext.UserAccounts
             .FirstOrDefault(x => x.Username == username);
 
-        if (userAccount == null || userAccount.Password != password)
+        if (userAccount == null || !_hashingService.VerifyPassword(password, userAccount.Password))
         {
             return false;
         }

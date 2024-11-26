@@ -33,6 +33,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAuthenticationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IHashingService, HashingService>();
 
 var app = builder.Build();
 
