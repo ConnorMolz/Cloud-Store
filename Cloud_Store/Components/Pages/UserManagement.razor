@@ -1,0 +1,178 @@
+@page "/UserManagement"
+@using Cloud_Store.Data
+@using Cloud_Store.Models.Entities
+@using Cloud_Store.Models.ViewModels
+@using Cloud_Store.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize(Roles ="Administrator")]
+@inject NavigationManager NavigationManager
+@inject CloudStoreContext DbContext
+@inject UserService UserService
+
+<h3>User Management</h3>
+
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (UserAccount user in Model.UserAccounts)
+    {
+        <tr>
+            <td>@user.Username</td>
+            <td>@user.Role</td>
+            <td>
+                <button @onclick="@(() => OpenEditUser(user))" class="btn btn-primary">Edit User</button>
+
+                <!-- <button class="btn btn-danger">Delete</button> -->
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" @onclick="OpenCreateUser">Create New User</button>
+
+<div class="modal @(Model.OpenModal ? "show" : "")" tabindex="-1" style="display: @(Model.OpenModal ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit an Existing User</h5>
+                <button type="button" class="btn-close" @onclick="CancelEditUser"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="username">Username: </label>
+                    <InputText
+                        @bind-Value="Model.Username"
+                        palceholder="Username"
+                        class="form-control"
+                        id="username"/>
+                    @if (Model.InCreateMode)
+                    {
+                        <label for="password">Password: </label>
+                        <InputText
+                            @bind-Value="Model.Password"
+                            palceholder="Password"
+                            class="form-control"
+                            id="password"/>
+                    }
+                    <label for="role">Role: </label>
+                    <select class="form-control" @bind="Model.Role" id="role">
+                        <option value="">Select Role</option>
+                        <option value="User">User</option>
+                        <option value="Administrator">Administrator</option>
+                        <option value="Disabled">Disable User</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CancelEditUser">Cancel</button>
+                @if(Model.InEditMode)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="EditUser">Save</button>
+                }
+                @if(Model.InCreateMode)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="CreateUser">Create</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    
+    private HashingService _hashingService = new();
+    public UserManagementViewModel Model = new();
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Model.UserAccounts = FetchUserList();
+    }
+    
+    private UserAccount[] FetchUserList()
+    {
+        return UserService.GetUserListAsync().Result;
+    }
+    
+    private void OpenEditUser(UserAccount user)
+    {
+        Model.CurrentUser = user;
+        Model.Username = user.Username;
+        Model.Role = user.Role;
+        Model.Password = "";
+        Model.InEditMode = true;
+        Model.InCreateMode = false;
+        Model.OpenModal = true;
+    }
+
+    private async Task EditUser()
+    {
+        if(Model.Role == "" || Model.Username == "")
+        {
+            return;
+        }
+        UserAccount updatedUser = Model.CurrentUser;
+        updatedUser.Username = Model.Username;
+        updatedUser.Role = Model.Role;
+        await UserService.UpdateUserAsync(updatedUser);
+        Model.UserAccounts = FetchUserList();
+        CancelEditUser();
+    }
+
+    private void CancelEditUser()
+    {
+        Model.CurrentUser = null;
+        Model.Username = "";
+        Model.Password = "";
+        Model.Role = "";
+        Model.InEditMode = false;
+        Model.InCreateMode = false;
+        Model.OpenModal = false;
+    }
+    
+    private void OpenCreateUser()
+    {
+        Model.CurrentUser = null;
+        Model.Username = "";
+        Model.Password = "";
+        Model.Role = "";
+        Model.InCreateMode = true;
+        Model.InEditMode = false;
+        Model.OpenModal = true;
+    }
+    
+    private void CreateUser()
+    {
+        if(Model.Password == "" || Model.Role == "" || Model.Username == "")
+        {
+            return;
+        }
+        UserAccount newUser = new UserAccount
+        {
+            Username = Model.Username,
+            Password = _hashingService.HashPassword(Model.Password),
+            Role = Model.Role
+        };
+        UserService.AddUserAsync(newUser);
+        Model.UserAccounts = FetchUserList();
+        CancelEditUser();
+    }
+    
+    /*
+     Implement later
+    private void DeleteUser(UserAccount user)
+    {
+        UserService.DeleteUserAsync(user);
+        Model.UserAccounts = UserService.GetUserListAsync().Result;
+    }
+    */
+
+}

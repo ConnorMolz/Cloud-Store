@@ -9,6 +9,8 @@ public interface IUserService
     Task<UserAccount[]> GetUserListAsync();
     Task<UserAccount> GetUserAsync(string username);
     Task AddUserAsync(UserAccount user);
+    
+    Task UpdateUserAsync(UserAccount user);
 }
 
 public class UserService: IUserService
@@ -41,6 +43,18 @@ public class UserService: IUserService
         if (checkUser == null)
         {
             _dbContext.UserAccounts.Add(user);
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+    
+    public async Task UpdateUserAsync(UserAccount user)
+    {
+        UserAccount? checkUser = _dbContext.UserAccounts.FirstOrDefault(x => x.Username == user.Username);
+        if (checkUser != null)
+        {
+            checkUser.Username = user.Username;
+            checkUser.Password = user.Password;
+            checkUser.Role = user.Role;
             await _dbContext.SaveChangesAsync();
         }
     }
