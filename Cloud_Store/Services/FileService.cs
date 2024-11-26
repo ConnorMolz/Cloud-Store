@@ -5,7 +5,7 @@ using System.IO;
 
 public interface IFileService
 {
-    Task WriteFileAsync(string fileName, Stream fileStream);
+    Task WriteFileAsync(string currentPath, string fileName, Stream fileStream);
     Task<Stream> GetFileAsync(string path, string fileName);
     Task DeleteFileAsync(string path, string fileName);
     Task CreateFolderAsync(string currentPath, string folderName);
@@ -24,9 +24,9 @@ public class FileService : IFileService
         _rootpath = Path.Combine(_rootpath, "Files");
     }
     
-    public async Task WriteFileAsync(string fileName, Stream fileStream)
+    public async Task WriteFileAsync(string currentPath, string fileName, Stream fileStream)
     {
-        string fullPath = Path.Combine(_rootpath, fileName);
+        string fullPath = Path.Combine(currentPath, fileName);
         using var destinationStream = File.Create(fullPath);
         await fileStream.CopyToAsync(destinationStream);
     }

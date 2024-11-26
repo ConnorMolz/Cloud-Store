@@ -224,7 +224,7 @@
             try 
             {
                 using var stream = file.OpenReadStream();
-                await FileService.WriteFileAsync(file.Name, stream);
+                await FileService.WriteFileAsync(_path, file.Name, stream);
             }
             catch (Exception ex)
             {
