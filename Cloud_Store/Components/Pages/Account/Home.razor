@@ -76,7 +76,6 @@
 
     private async Task Authenticate()
     {
-        Console.Write("Test");
         var result = await AuthService.AuthenticateAsync(Model.Username, Model.Password);
 
         if (result)

@@ -5,6 +5,7 @@
 @using Cloud_Store.Services
 @inject NavigationManager NavigationManager
 @inject CloudStoreContext DbContext
+@inject UserService UserService
 
 <AuthorizeView>
     <NotAuthorized>
@@ -25,6 +26,11 @@
                         <InputText type="password" @bind-Value="Model.Password" class="form-control" placeholder="Password"/>
                         <ValidationMessage For="@(() => Model.Password)"/>
                     </div>
+                    <div class="mb-3">
+                        <label>Confirm Password</label>
+                        <InputText type="password" @bind-Value="Model.ConfirmPassword" class="form-control" placeholder="Confirm Password"/>
+                        <ValidationMessage For="@(() => Model.ConfirmPassword)"/>
+                    </div>
                     <div class="mb-3 text-center">
                         <span class="text-danger">@_errorMessage</span>
                     </div>
@@ -41,13 +47,11 @@
     private LoginViewModel Model { get; set; } = new();
     private string? _errorMessage;
     private HashingService _hashingService = new();
-    private UserService _userService;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _userService = new UserService(DbContext);
-        UserAccount[] users = _userService.GetUserListAsync().Result;
+        UserAccount[] users = UserService.GetUserListAsync().Result;
         if (users.Length != 0)
         {
             NavigationManager.NavigateTo("/", true);
@@ -56,14 +60,24 @@
 
     private async Task CreateUser()
     {
+        UserAccount[] users = UserService.GetUserListAsync().Result;
+        if (users.Length != 0)
+        {
+            NavigationManager.NavigateTo("/", true);
+        }
+        if(Model.Password != Model.ConfirmPassword)
+        {
+            _errorMessage = "Passwords do not match";
+            return;
+        }
         UserAccount user = new UserAccount
         {
             Username = Model.Username,
             Password = _hashingService.HashPassword(Model.Password),
             Role = "Administrator"
         };
-        await _userService.AddUserAsync(user);
-        NavigationManager.NavigateTo("/");
+        await UserService.AddUserAsync(user);
+        NavigationManager.NavigateTo("/", true);
     }
 
 }

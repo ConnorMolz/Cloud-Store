@@ -41,6 +41,7 @@ public class UserService: IUserService
         if (checkUser == null)
         {
             _dbContext.UserAccounts.Add(user);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
