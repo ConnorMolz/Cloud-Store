@@ -122,18 +122,28 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="upload files" class="form-label">Select Files</label>
-                    <InputFile 
-                        multiple 
-                        class="form-control" 
-                        id="upload files" 
-                        OnChange="HandleFileSelection" 
+                    <InputFile
+                        multiple
+                        class="form-control"
+                        id="upload files"
+                        OnChange="HandleFileSelection"
                         maxfilesize="5368709120"
+                        disabled="@_isUploading"
                     />
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @onclick="CloseUploadFileForm">Cancel</button>
-                <button type="button" class="btn btn-primary" @onclick="UploadFiles">Upload</button>
+                <button type="button" class="btn btn-secondary" @onclick="CloseUploadFileForm" disabled="@_isUploading">Cancel</button>
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="UploadFiles"
+                        disabled="@(_isUploading || _selectedFiles.Count == 0)">
+                    @if (_isUploading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    }
+                    Upload
+                </button>
             </div>
         </div>
     </div>
@@ -150,6 +160,7 @@
     public required FileService FileService { get; set; } = new();
     private List<IBrowserFile> _selectedFiles = new();
     private long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5GB
+    private bool _isUploading = false;
     
     
     protected override async Task OnInitializedAsync()
@@ -235,21 +246,34 @@
             return;
         }
 
-        foreach (var file in _selectedFiles)
-        {
-            try 
-            {
-                using var stream = file.OpenReadStream(maxAllowedSize: _maxFileSize );
-                await FileService.WriteFileAsync(_path, file.Name, stream);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error uploading file {file.Name}: {ex.Message}");
-            }
-        }
+        // Set loading state before upload begins
+        _isUploading = true;
+        StateHasChanged(); // Trigger UI update
 
-        await RefreshFileList();
-        CloseUploadFileForm();
+        try 
+        {
+            foreach (var file in _selectedFiles)
+            {
+                try 
+                {
+                    using var stream = file.OpenReadStream(maxAllowedSize: _maxFileSize);
+                    await FileService.WriteFileAsync(_path, file.Name, stream);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error uploading file {file.Name}: {ex.Message}");
+                }
+            }
+
+            await RefreshFileList();
+            CloseUploadFileForm();
+        }
+        finally
+        {
+            // Always clear loading state, even if an error occurs
+            _isUploading = false;
+            StateHasChanged(); // Trigger UI update
+        }
     }
 
     private void CloseUploadFileForm()
