@@ -26,9 +26,23 @@ public class FileService : IFileService
     
     public async Task WriteFileAsync(string currentPath, string fileName, Stream fileStream)
     {
-        string fullPath = Path.Combine(currentPath, fileName);
+        // Sanitize filename to prevent directory traversal
+        fileName = Path.GetFileName(fileName);
+    
+        string fullPath = EnsureSafePath(Path.Combine(currentPath, fileName));
+    
+        // Ensure directory exists
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+    
         using var destinationStream = File.Create(fullPath);
-        await fileStream.CopyToAsync(destinationStream);
+    
+        // Use a larger buffer for big files
+        byte[] buffer = new byte[81920]; // 80KB buffer
+        int bytesRead;
+        while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        {
+            await destinationStream.WriteAsync(buffer, 0, bytesRead);
+        }
     }
 
     public async Task<Stream> GetFileAsync(string path, string fileName)
@@ -98,5 +112,18 @@ public class FileService : IFileService
     {
         path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return Path.GetDirectoryName(path) ?? path;
+    }
+    
+    private string EnsureSafePath(string path)
+    {
+        // Validate that the path is within the root directory
+        string fullPath = Path.GetFullPath(Path.Combine(_rootpath, path));
+    
+        if (!fullPath.StartsWith(_rootpath))
+        {
+            throw new UnauthorizedAccessException("Access to the specified path is not allowed.");
+        }
+    
+        return fullPath;
     }
 }

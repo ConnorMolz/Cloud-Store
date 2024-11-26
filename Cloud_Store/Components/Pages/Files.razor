@@ -122,7 +122,13 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="upload files" class="form-label">Select Files</label>
-                    <InputFile multiple class="form-control" id="upload files" OnChange="HandleFileSelection" />
+                    <InputFile 
+                        multiple 
+                        class="form-control" 
+                        id="upload files" 
+                        OnChange="HandleFileSelection" 
+                        maxfilesize="5368709120"
+                    />
                 </div>
             </div>
             <div class="modal-footer">
@@ -143,6 +149,8 @@
     private string _showPath = "";
     public required FileService FileService { get; set; } = new();
     private List<IBrowserFile> _selectedFiles = new();
+    private long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5GB
+    
     
     protected override async Task OnInitializedAsync()
     {
@@ -208,7 +216,15 @@
     
     private void HandleFileSelection(InputFileChangeEventArgs e)
     {
-        _selectedFiles = e.GetMultipleFiles().ToList();
+        var files = e.GetMultipleFiles().Where(f => f.Size <= _maxFileSize).ToList();
+    
+        if (files.Count != e.GetMultipleFiles().Count())
+        {
+            // Optional: Provide user feedback about file size limit
+            Console.WriteLine("Some files exceed the 5GB size limit and were not selected.");
+        }
+
+        _selectedFiles = files;
         FormModel.NewFiles = _selectedFiles.Select(f => f.Name).ToArray();
     }
 
@@ -223,7 +239,7 @@
         {
             try 
             {
-                using var stream = file.OpenReadStream();
+                using var stream = file.OpenReadStream(maxAllowedSize: _maxFileSize );
                 await FileService.WriteFileAsync(_path, file.Name, stream);
             }
             catch (Exception ex)

@@ -3,6 +3,7 @@ using Cloud_Store.Data;
 using Cloud_Store.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Radzen;
 
@@ -34,6 +35,19 @@ builder.Services.AddAuthenticationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IHashingService, HashingService>();
+// Increase Kestrel server limits
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024; // 5GB
+});
+
+// Configure form options
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 5L * 1024 * 1024 * 1024; // 5GB
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
 builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
