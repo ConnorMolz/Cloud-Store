@@ -1,0 +1,335 @@
+﻿@page "/files"
+@using Cloud_Store.Models.ViewModels
+@using Cloud_Store.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IJSRuntime JsRuntime
+@attribute [Authorize(Roles ="User, Administrator")]
+
+<PageTitle>Files</PageTitle>
+
+<div class="row">
+    <div>
+        <div class="card">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                @if (_showRevert)
+                {
+                    <div>
+                        <button class="btn btn-outline-primary" @onclick="GoBack">Back</button>
+                    </div>
+                }
+                <div class="flex-grow-1 text-center">
+                    <p class="mb-0">@_showPath</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-success me-2" @onclick="() => { FormModel.ShowFileForm = true; }" >
+                        <i class="bi bi-upload me-1"></i>Upload File
+                    </button>
+                    <button class="btn btn-outline-primary" @onclick="() => { FormModel.ShowNewFolderForm = true; }">
+                        <i class="bi bi-folder-plus me-1"></i>Create Folder
+                    </button>
+                </div>
+            </div>
+        </div>
+        @foreach (var folder in Model.Folders)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body" @onclick="() => { NavigateToFolder(folder); }">
+                        <h5 class="card-title link-underline">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
+                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z"/>
+                            </svg>
+                            @folder
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        }
+        @foreach (var file in Model.Files)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file" viewBox="0 0 16 16">
+                                <path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1"/>
+                            </svg>
+                            @file
+                        </h5>
+                        <div class="dropdown">
+                            <button class="btn btn-sm" type="button" id="dropdownMenuButton-@file" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-@file">
+                                <li><a class="dropdown-item" href="#" @onclick:preventDefault @onclick="() => DownloadFile(file)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                                        </svg>
+                                        Download
+                                    </a></li>
+                                <li><a class="dropdown-item" href="#" @onclick:preventDefault @onclick="() => DeleteFile(file)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                        </svg>
+                                        Delete
+                                    </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+<div class="modal @(FormModel.ShowNewFolderForm ? "show" : "")" tabindex="-1" style="display: @(FormModel.ShowNewFolderForm ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Folder</h5>
+                <button type="button" class="btn-close" @onclick="CloseNewFolderForm"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newFolderName" class="form-label">Folder Name</label>
+                    <input type="text"
+                           class="form-control"
+                           id="newFolderName"
+                           @bind="FormModel.NewFolderName"
+                           placeholder="Enter folder name" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseNewFolderForm">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="CreateFolder">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal @(FormModel.ShowFileForm ? "show" : "")" tabindex="-1" style="display: @(FormModel.ShowFileForm ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload new Files</h5>
+                <button type="button" class="btn-close" @onclick="CloseUploadFileForm"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="upload files" class="form-label">Select Files</label>
+                    <InputFile
+                        multiple
+                        class="form-control"
+                        id="upload files"
+                        OnChange="HandleFileSelection"
+                        maxfilesize="5368709120"
+                        disabled="@_isUploading"
+                    />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseUploadFileForm" disabled="@_isUploading">Cancel</button>
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="UploadFiles"
+                        disabled="@(_isUploading || _selectedFiles.Count == 0)">
+                    @if (_isUploading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    }
+                    Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    private HomeViewModel Model { get; set; }
+    private HomeViewFormModel FormModel { get; set; } = new();
+    private string _path = "";
+    private bool _showRevert;
+    private string _rootPath = "";
+    private string _showPath = "";
+    public required FileService FileService { get; set; } = new();
+    private List<IBrowserFile> _selectedFiles = new();
+    private long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5GB
+    private bool _isUploading = false;
+    
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        Model = FileService.GetFileListAsync(_path).Result;
+        _path = Model.CurrentPath;
+        _rootPath = _path;
+        _showPath = SlicePath(_path);
+    }
+    
+    private void NavigateToFolder(string folder)
+    {
+        _path = Path.Combine(_path, folder);
+        _showRevert = _path != _rootPath;
+        Model = FileService.GetFileListAsync(_path).Result;
+        _path = Model.CurrentPath;
+        _showPath = SlicePath(_path);
+    }
+    
+    private async Task GoBack()
+    {
+        _path = FileService.RemoveLastFolder(_path);
+        _showRevert = _path != _rootPath;
+        Model = await FileService.GetFileListAsync(_path);
+        _path = Model.CurrentPath;
+        _showPath = SlicePath(_path);
+    }
+
+    private string SlicePath(string path)
+    {
+        path = path.Replace("\\", "/");
+        if (_path == _rootPath)
+        {
+            return "/";
+        }
+
+        return path.Replace(_rootPath.Replace("\\", "/") + "/", "");
+    }
+
+    private async Task CreateFolder()
+    {
+        if(string.IsNullOrEmpty(FormModel.NewFolderName))
+        {
+            return;
+        }
+        Console.WriteLine(_path);
+        string folderName = FormModel.NewFolderName;
+        await FileService.CreateFolderAsync(_path, folderName);
+        CloseNewFolderForm();
+        await RefreshFileList();
+    }
+
+    private async Task RefreshFileList()
+    {
+        Model = await FileService.GetFileListAsync(_path);
+    }
+    
+    private void CloseNewFolderForm()
+    {
+        FormModel.ShowNewFolderForm = false;
+        FormModel.NewFolderName = string.Empty;
+    }
+    
+    private void HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles().Where(f => f.Size <= _maxFileSize).ToList();
+    
+        if (files.Count != e.GetMultipleFiles().Count())
+        {
+            // Optional: Provide user feedback about file size limit
+            Console.WriteLine("Some files exceed the 5GB size limit and were not selected.");
+        }
+
+        _selectedFiles = files;
+        FormModel.NewFiles = _selectedFiles.Select(f => f.Name).ToArray();
+    }
+
+    private async Task UploadFiles()
+    {
+        if (_selectedFiles == null || _selectedFiles.Count == 0)
+        {
+            return;
+        }
+
+        // Set loading state before upload begins
+        _isUploading = true;
+        StateHasChanged(); // Trigger UI update
+
+        try 
+        {
+            foreach (var file in _selectedFiles)
+            {
+                try 
+                {
+                    using var stream = file.OpenReadStream(maxAllowedSize: _maxFileSize);
+                    await FileService.WriteFileAsync(_path, file.Name, stream);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error uploading file {file.Name}: {ex.Message}");
+                }
+            }
+
+            await RefreshFileList();
+            CloseUploadFileForm();
+        }
+        finally
+        {
+            // Always clear loading state, even if an error occurs
+            _isUploading = false;
+            StateHasChanged(); // Trigger UI update
+        }
+    }
+
+    private void CloseUploadFileForm()
+    {
+        FormModel.ShowFileForm = false;
+        _selectedFiles.Clear();
+        FormModel.NewFiles = [];
+    }
+    
+    private async Task DownloadFile(string fileName)
+    {
+        try 
+        {
+            // Get the file stream from the FileService
+            var fileStream = await FileService.GetFileAsync(_path, fileName);
+            
+            // Convert stream to byte array
+            using var memoryStream = new MemoryStream();
+            await fileStream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+
+            // Use JavaScript interop to trigger download
+            await JsRuntime.InvokeVoidAsync("downloadFile", fileName, Convert.ToBase64String(fileBytes));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading file {fileName}: {ex.Message}");
+            // Optionally, add user-friendly error handling or toast notification
+        }
+    }
+
+    private async Task DeleteFile(string fileName)
+    {
+        try 
+        {
+            // Implement file deletion logic
+            await FileService.DeleteFileAsync(_path, fileName);
+            await RefreshFileList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting file {fileName}: {ex.Message}");
+            // Optionally, add user-friendly error handling or toast notification
+        }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeDropdowns();
+        }
+    }
+
+    private async Task InitializeDropdowns()
+    {
+        await JsRuntime.InvokeVoidAsync("initializeBootstrapDropdowns");
+    }
+}

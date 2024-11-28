@@ -9,4 +9,8 @@ public class LoginViewModel
     
     [Required(AllowEmptyStrings = false, ErrorMessage = "Please enter a password.")]
     public string? Password { get; set; }
+    
+    public string? ConfirmPassword { get; set; }
+    
+    
 }

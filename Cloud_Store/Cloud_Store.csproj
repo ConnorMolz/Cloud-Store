@@ -28,11 +28,17 @@
         </PackageReference>
         <PackageReference Include="Radzen.Blazor" Version="5.6.3" />
         <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.10" />
+        <PackageReference Include="System.IO" Version="4.3.0" />
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Database\" />
+        <Folder Include="Files\Folder\Folder2\Text3.txt\" />
         <Folder Include="Migrations\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="wwwroot\JS\bootstrap-interop.js" />
     </ItemGroup>
 
 </Project>

@@ -1,0 +1,100 @@
+@page "/"
+@using Cloud_Store.Data
+@using Cloud_Store.Models.Entities
+@using Cloud_Store.Models.ViewModels
+@using Cloud_Store.Services
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject CloudStoreContext DbContext
+
+
+
+<AuthorizeView>
+    <!-- If the user is not authorized, show the login form -->
+    <NotAuthorized>
+        <div class="row">
+            <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+                <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="HomeForm" Context="editFormContext">
+                    <DataAnnotationsValidator/>
+                    <div class="mb-3 text-center flex-column">
+                        <h3>LOGIN</h3>
+                    </div>
+                    <div class="mb-3">
+                        <label>Username</label>
+                        <InputText @bind-Value="Model.Username" class="form-control" placeholder="Username"/>
+                        <ValidationMessage For="@(() => Model.Username)"/>
+                    </div>
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <InputText type="password" @bind-Value="Model.Password" class="form-control" placeholder="Password"/>
+                        <ValidationMessage For="@(() => Model.Password)"/>
+                    </div>
+                    <div class="mb-3 text-center">
+                        <span class="text-danger">@_errorMessage</span>
+                    </div>
+                    <div class="mb-3 d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </NotAuthorized>
+    <Authorized>
+        <!-- If the user is authorized, show the welcome message (more content is coming later on this page-->
+        <div class="row">
+            <div class="col-12">
+                <h2 class="fw-bolder">Welcome to the Cloud Store</h2>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <span>You are logged in as <span class="fw-bolder">@context.User.Identity.Name</span>.<a class="fw-bolder" href="/logout">Click here</a> to logout.</span>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    // Site model and other variables for controlling the login form and welcome page
+    [SupplyParameterFromForm]
+    public LoginViewModel Model { get; set; } = new();
+
+    private UserService _userService;
+
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        // Init the user service for Auth and User fecthing 
+        _userService = new UserService(DbContext);
+        base.OnInitialized();
+        
+        // Check if at least one user exists in the database, if not, redirect to the init page (first time setup)
+        UserAccount[] userList = _userService.GetUserListAsync().Result;
+        if (userList.Length == 0)
+        {
+            NavigationManager.NavigateTo("/init");
+        }
+
+    }
+
+    // Method for authenticating the user
+    private async Task Authenticate()
+    {
+        // Authenticate the user
+        var result = await AuthService.AuthenticateAsync(Model.Username, Model.Password);
+        
+        // If the authentication was successful, redirect to the home page
+        if (result)
+        {
+            NavigationManager.NavigateTo("/", true, true );
+        }
+        else
+        {
+            // If the authentication failed, show an error message
+            _errorMessage = "Invalid username or password";
+        }
+    }
+}
