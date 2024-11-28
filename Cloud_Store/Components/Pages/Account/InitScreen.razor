@@ -1,14 +1,13 @@
 @page "/init"
-@using Cloud_Store.Data
 @using Cloud_Store.Models.Entities
 @using Cloud_Store.Models.ViewModels
 @using Cloud_Store.Services
 @inject NavigationManager NavigationManager
-@inject CloudStoreContext DbContext
 @inject UserService UserService
 
 <AuthorizeView>
     <NotAuthorized>
+        <!-- Form for the initial user creation -->
         <div class="row">
             <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
                 <EditForm Model="@Model" OnValidSubmit="CreateUser" FormName="HomeForm" Context="editFormContext">
@@ -62,12 +61,14 @@
 </AuthorizeView>
 
 @code {
-    private LoginViewModel Model { get; set; } = new();
+    // Site model and other variables for controlling the init page
+    private LoginViewModel Model { get; } = new();
     private string? _errorMessage;
     private HashingService _hashingService = new();
 
     protected override void OnInitialized()
     {
+        // Check if the user list is empty, if not, redirect to the home page
         base.OnInitialized();
         UserAccount[] users = UserService.GetUserListAsync().Result;
         if (users.Length != 0)
@@ -78,22 +79,29 @@
 
     private async Task CreateUser()
     {
+        // if a user is already created, redirect to the home page
+        // Secure for the case that the user tries to access the init page after the user is created
         UserAccount[] users = UserService.GetUserListAsync().Result;
         if (users.Length != 0)
         {
             NavigationManager.NavigateTo("/", true);
         }
+        // Check if the passwords match
         if(Model.Password != Model.ConfirmPassword)
         {
             _errorMessage = "Passwords do not match";
             return;
         }
+        
+        // Create the user object with role administrator
         UserAccount user = new UserAccount
         {
             Username = Model.Username,
             Password = _hashingService.HashPassword(Model.Password),
             Role = "Administrator"
         };
+        
+        // Add the user to the database and redirect to the home page for login
         await UserService.AddUserAsync(user);
         NavigationManager.NavigateTo("/", true);
     }

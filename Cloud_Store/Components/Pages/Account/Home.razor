@@ -10,6 +10,7 @@
 
 
 <AuthorizeView>
+    <!-- If the user is not authorized, show the login form -->
     <NotAuthorized>
         <div class="row">
             <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
@@ -39,6 +40,7 @@
         </div>
     </NotAuthorized>
     <Authorized>
+        <!-- If the user is authorized, show the welcome message (more content is coming later on this page-->
         <div class="row">
             <div class="col-12">
                 <h2 class="fw-bolder">Welcome to the Cloud Store</h2>
@@ -55,6 +57,7 @@
 </AuthorizeView>
 
 @code {
+    // Site model and other variables for controlling the login form and welcome page
     [SupplyParameterFromForm]
     public LoginViewModel Model { get; set; } = new();
 
@@ -64,8 +67,11 @@
 
     protected override void OnInitialized()
     {
+        // Init the user service for Auth and User fecthing 
         _userService = new UserService(DbContext);
         base.OnInitialized();
+        
+        // Check if at least one user exists in the database, if not, redirect to the init page (first time setup)
         UserAccount[] userList = _userService.GetUserListAsync().Result;
         if (userList.Length == 0)
         {
@@ -74,16 +80,20 @@
 
     }
 
+    // Method for authenticating the user
     private async Task Authenticate()
     {
+        // Authenticate the user
         var result = await AuthService.AuthenticateAsync(Model.Username, Model.Password);
-
+        
+        // If the authentication was successful, redirect to the home page
         if (result)
         {
             NavigationManager.NavigateTo("/", true, true );
         }
         else
         {
+            // If the authentication failed, show an error message
             _errorMessage = "Invalid username or password";
         }
     }
