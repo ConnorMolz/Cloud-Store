@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <GenerateRuntimeConfigurationFiles>True</GenerateRuntimeConfigurationFiles>
+        <Version>0.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
