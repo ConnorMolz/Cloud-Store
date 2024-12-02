@@ -34,15 +34,15 @@ jobs:
 
       - name: Build for Ubuntu x64
         if: matrix.os == 'ubuntu-latest' && matrix.architecture == 'x64'
-        run: dotnet publish -c Release -r linux-x64 --self-contained true
+        run: dotnet publish -f net9.0 -c Release -r linux-x64 --self-contained true
 
       - name: Build for Ubuntu ARM
         if: matrix.os == 'ubuntu-latest' && matrix.architecture == 'arm'
-        run: dotnet publish -c Release -r linux-arm --self-contained true
+        run: dotnet publish -f net9.0 -c Release -r linux-arm --self-contained true
 
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
-        run: dotnet publish -c Release -r win-x64 --self-contained true
+        run: dotnet publish -f net9.0 -c Release -r win-x64 --self-contained true
 
   docker:
     runs-on: ubuntu-latest
