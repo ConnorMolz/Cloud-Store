@@ -1,21 +1,27 @@
+
 name: Build and Release
 
 on:
   push:
     branches:
-      - Repo-orga
+      - no-branch
   pull_request:
     branches:
       - master
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        architecture: [x64, arm]
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+#          - os: ubuntu-latest
+#            rid: linux-arm
+#          - os: windows-latest
+#            rid: win-x64
 
     steps:
       - name: Checkout code
@@ -26,42 +32,22 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Install dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration Release --runtime ${{ matrix.os == 'ubuntu-latest' && matrix.architecture == 'arm' ? 'linux-arm' : matrix.os == 'ubuntu-latest' ? 'linux-x64' : 'win-x64' }}
-
-  docker:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}/myapp:latest .
-
-      - name: Push Docker image
+      - name: List solution and project files
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker push ghcr.io/${{ github.repository }}/myapp:latest
+          ls *.sln
+          find . -name "*.csproj"
 
-  release:
-    runs-on: ubuntu-latest
-    needs: build
+      - name: Restore dependencies
+        run: dotnet restore -r ${{ matrix.rid }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Build and Publish
+        run: |
+          dotnet publish -c Release -r ${{ matrix.rid }} -f net9.0 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+        working-directory: ./Cloud_Store
 
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
-          draft: false
-          prerelease: false
+          name: ${{ matrix.rid }}-build
+          path: ./Cloud_Store/bin/Release/net9.0/${{ matrix.rid }}/publish/
+          retention-days: 5
