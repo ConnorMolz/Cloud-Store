@@ -5,7 +5,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "NuGet" # See documentation for possible values
+  - package-ecosystem: "nuget" # See documentation for possible values
     directories: 
       - "/Cloud_Store" # Location of package manifests
       - "/Cloud_Store.Tests"
