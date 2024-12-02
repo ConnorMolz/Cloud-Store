@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <GenerateRuntimeConfigurationFiles>True</GenerateRuntimeConfigurationFiles>
-        <Version>0.1.0</Version>
+        <Version>0.1.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -34,7 +34,6 @@
 
     <ItemGroup>
         <Folder Include="Database\" />
-        <Folder Include="Files\Folder\Folder2\Text3.txt\" />
         <Folder Include="Migrations\" />
     </ItemGroup>
 
