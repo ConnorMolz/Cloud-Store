@@ -7,7 +7,7 @@ on:
       - no-branch
   pull_request:
     branches:
-      - no-branch
+      - master
 
 jobs:
   build:
