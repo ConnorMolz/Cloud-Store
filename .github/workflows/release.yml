@@ -1,0 +1,53 @@
+
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - no-branch
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+#          - os: ubuntu-latest
+#            rid: linux-arm
+#          - os: windows-latest
+#            rid: win-x64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: List solution and project files
+        run: |
+          ls *.sln
+          find . -name "*.csproj"
+
+      - name: Restore dependencies
+        run: dotnet restore -r ${{ matrix.rid }}
+
+      - name: Build and Publish
+        run: |
+          dotnet publish -c Release -r ${{ matrix.rid }} -f net9.0 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+        working-directory: ./Cloud_Store
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.rid }}-build
+          path: ./Cloud_Store/bin/Release/net9.0/${{ matrix.rid }}/publish/
+          retention-days: 5
