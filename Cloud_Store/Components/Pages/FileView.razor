@@ -1,17 +1,24 @@
 @page "/fileview"
 @using Microsoft.AspNetCore.Authorization
+@using System.Text
+@using Cloud_Store.Models.ViewModels
 @attribute [Authorize(Roles ="User, Administrator")]
 @inject NavigationManager Navigation
 
 <h3>File View</h3>
-<button @onclick="navigateBack">back</button>
-
+<button @onclick="navigateBack" class="btn-primary btn">back</button>
+<EditForm Model="@_model" FormName="FileForm" Context="editFormContext">
+    <textarea @bind-value="_model.FileContent" @bind-value:event="oninput" class="form-control" rows="@_rows"></textarea>
+</EditForm> 
 
 @code{
-    
-    private string _path;
+    private FileViewModel _model = new ();
 
-    private string _backroute;
+    private int _rows;
+
+    private string _path = string.Empty;
+
+    private string _backroute = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -36,24 +43,72 @@
         {
             _backroute = backRouteValue;
         }
-        else
-        {
-            _backroute = "";
-        }
 
         if (forceBackNav)
         {
             var url = "/files" + "?back_path=" + _backroute;
-            
+
             Navigation.NavigateTo(url);
         }
-       
+
+        // Call GetFileContent as an async method
+        GetFileContentAsync();
     }
-    
+
     private void navigateBack()
     {
         string url = "/files" + "?back_path=" + _backroute;
         Navigation.NavigateTo(url);
     }
 
+    private async Task GetFileContentAsync()
+    {
+        try
+        {
+            // Use encoding detection and sanitization
+            byte[] fileBytes = await File.ReadAllBytesAsync(_path);
+
+            // Detect encoding
+            Encoding encoding = DetectEncoding(fileBytes);
+
+            // Decode with the detected encoding and sanitize
+            _model.FileContent = SanitizeContent(encoding.GetString(fileBytes));
+
+            _rows = _model.FileContent.Split('\n').Length + 5;
+
+            // Ensure the UI updates
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            _model.FileContent = $"Error reading file: {e.Message}";
+            _rows = 5;
+
+            // Ensure the UI updates
+            StateHasChanged();
+        }
+    }
+
+    private Encoding DetectEncoding(byte[] fileBytes)
+    {
+        // Try to detect encoding
+        try
+        {
+            // Use UTF8 by default with fallback
+            return Encoding.UTF8;
+        }
+        catch
+        {
+            // Fallback to default encoding if detection fails
+            return Encoding.Default;
+        }
+    }
+
+    private string SanitizeContent(string content)
+    {
+        // Remove or replace invalid characters
+        return new string(content
+            .Where(c => !char.IsControl(c) || c == '\n' || c == '\r' || c == '\t')
+            .ToArray());
+    } 
 }
