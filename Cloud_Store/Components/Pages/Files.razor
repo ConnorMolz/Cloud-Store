@@ -357,6 +357,16 @@
     
     private void OpenFile(string filePath)
     {
+        // Check if the file format is supported to open in the browser
+        var fileExtension = Path.GetExtension(filePath).ToLower();
+        
+        var supportedExtensions = new List<string> { ".txt"};//, ".pdf", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg" };
+
+        if (!supportedExtensions.Contains(fileExtension))
+        {
+            return;
+        }
+        
         NavigationManager.NavigateTo("/fileview?path=" + filePath + "&back_path=" + _path);
     }
 }
