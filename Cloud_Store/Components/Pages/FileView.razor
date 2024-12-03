@@ -1,0 +1,222 @@
+@page "/fileview"
+@using Microsoft.AspNetCore.Authorization
+@using System.Text
+@using Cloud_Store.Models.ViewModels
+@attribute [Authorize(Roles ="User, Administrator")]
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+
+<div class="row">
+    <div>
+        <div class="card">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <button class="btn btn-outline-primary" @onclick="navigateBack">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                        </svg>
+                        Back
+                    </button>
+                </div>
+                <div class="flex-grow-1 text-center">
+                    <p class="mb-0">@Path.GetFileName(_path)</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-success me-2" @onclick="SaveFile">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save me-1" viewBox="0 0 16 16">
+                            <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5v0z"/>
+                        </svg>
+                        Save
+                    </button>
+                    <button class="btn btn-outline-danger" @onclick="DownloadFile">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-1" viewBox="0 0 16 16">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <EditForm Model="@_model" FormName="FileForm" Context="editFormContext">
+                    <textarea @bind-value="_model.FileContent" @bind-value:event="oninput" class="form-control" rows="@_rows"></textarea>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    private FileViewModel _model = new ();
+
+    private int _rows;
+
+    private string _path = string.Empty;
+
+    private string _backroute = string.Empty;
+    
+    private bool _isDownloading = false;
+
+    protected override void OnInitialized()
+    {
+        bool forceBackNav = false;
+        // Get the URI
+        var uri = Navigation.Uri;
+
+        // Parse the query string
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(uri).Query);
+
+        // Extract specific query parameters
+        if (query.TryGetValue("path", out var pathValue))
+        {
+            _path = pathValue;
+        }
+        else
+        {
+            forceBackNav = true;
+        }
+
+        if (query.TryGetValue("back_path", out var backRouteValue))
+        {
+            _backroute = backRouteValue;
+        }
+
+        if (forceBackNav)
+        {
+            var url = "/files" + "?back_path=" + _backroute;
+
+            Navigation.NavigateTo(url);
+        }
+
+        // Call GetFileContent as an async method
+        GetFileContentAsync();
+    }
+
+    private void navigateBack()
+    {
+        string url = "/files" + "?back_path=" + _backroute;
+        Navigation.NavigateTo(url);
+    }
+
+    private async Task GetFileContentAsync()
+    {
+        try
+        {
+            // Use encoding detection and sanitization
+            byte[] fileBytes = await File.ReadAllBytesAsync(_path);
+
+            // Detect encoding
+            Encoding encoding = DetectEncoding(fileBytes);
+
+            // Decode with the detected encoding and sanitize
+            _model.FileContent = SanitizeContent(encoding.GetString(fileBytes));
+
+            _rows = _model.FileContent.Split('\n').Length + 5;
+
+            // Ensure the UI updates
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            _model.FileContent = $"Error reading file: {e.Message}";
+            _rows = 5;
+
+            // Ensure the UI updates
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveFile()
+    {
+        try
+        {
+            // Sanitize content before saving
+            var sanitizedContent = SanitizeContent(_model.FileContent);
+
+            // Use encoding detection
+            Encoding encoding = DetectEncoding(Encoding.UTF8.GetBytes(sanitizedContent));
+
+            // Write the file with the detected encoding
+            await File.WriteAllTextAsync(_path, sanitizedContent, encoding);
+
+            // Optional: Show a success toast or notification
+            await JsRuntime.InvokeVoidAsync("showToast", "File saved successfully", "success");
+        }
+        catch (Exception ex)
+        {
+            // Optional: Show an error toast or notification
+            await JsRuntime.InvokeVoidAsync("showToast", $"Error saving file: {ex.Message}", "danger");
+        }
+    }
+
+    private async Task DownloadFile()
+    {
+        // Prevent multiple simultaneous download attempts
+        if (_isDownloading)
+        {
+            return;
+        }
+
+        try
+        {
+            // Set flag to prevent multiple downloads
+            _isDownloading = true;
+
+            // Sanitize content before saving
+            var sanitizedContent = SanitizeContent(_model.FileContent);
+
+            // Use encoding detection
+            Encoding encoding = DetectEncoding(Encoding.UTF8.GetBytes(sanitizedContent));
+
+            // Write the file with the detected encoding
+            await File.WriteAllTextAsync(_path, sanitizedContent, encoding);
+
+            // Read file bytes after successful save
+            var fileBytes = await File.ReadAllBytesAsync(_path);
+
+            // Get file name from path
+            var fileName = Path.GetFileName(_path);
+
+            // Use JavaScript interop to trigger download
+            await JsRuntime.InvokeVoidAsync("downloadFile", fileName, Convert.ToBase64String(fileBytes));
+
+            // Show success toast
+            await JsRuntime.InvokeVoidAsync("showToast", "File saved and downloaded successfully", "success");
+        }
+        catch (Exception ex)
+        {
+            // Show error toast
+            await JsRuntime.InvokeVoidAsync("showToast", $"Error: {ex.Message}", "danger");
+        }
+        finally
+        {
+            // Reset the flag to allow future downloads
+            _isDownloading = false;
+        }
+    }
+    private Encoding DetectEncoding(byte[] fileBytes)
+    {
+        // Try to detect encoding
+        try
+        {
+            // Use UTF8 by default with fallback
+            return Encoding.UTF8;
+        }
+        catch
+        {
+            // Fallback to default encoding if detection fails
+            return Encoding.Default;
+        }
+    }
+
+    private string SanitizeContent(string content)
+    {
+        // Remove or replace invalid characters
+        return new string(content
+            .Where(c => !char.IsControl(c) || c == '\n' || c == '\r' || c == '\t')
+            .ToArray());
+    }
+}
