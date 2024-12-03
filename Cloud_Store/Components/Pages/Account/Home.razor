@@ -52,6 +52,11 @@
                     <span>You are logged in as <span class="fw-bolder">@context.User.Identity.Name</span>.<a class="fw-bolder" href="/logout">Click here</a> to logout.</span>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    @((MarkupString)Markdown.ToHtml(_markdownContent))
+                </div>
+            </div>
         </div>
     </Authorized>
 </AuthorizeView>
@@ -61,23 +66,33 @@
     [SupplyParameterFromForm]
     public LoginViewModel Model { get; set; } = new();
 
-    private UserService _userService;
+    private UserService _userService = null!;
 
     private string? _errorMessage;
+    
+    private string _markdownContent = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Init the user service for Auth and User fecthing 
+        // Init the user service for Auth and User fetching 
         _userService = new UserService(DbContext);
-        base.OnInitialized();
-        
+
         // Check if at least one user exists in the database, if not, redirect to the init page (first time setup)
-        UserAccount[] userList = _userService.GetUserListAsync().Result;
+        UserAccount[] userList = await _userService.GetUserListAsync();
         if (userList.Length == 0)
         {
             NavigationManager.NavigateTo("/init");
         }
 
+        // Read the markdown file content
+        try 
+        {
+            _markdownContent = await File.ReadAllTextAsync("./wwwroot/md/changelog.md");
+        }
+        catch (Exception ex)
+        {
+            _markdownContent = "Error loading content: " + ex.Message;
+        }
     }
 
     // Method for authenticating the user
@@ -85,7 +100,7 @@
     {
         // Authenticate the user
         var result = await AuthService.AuthenticateAsync(Model.Username, Model.Password);
-        
+
         // If the authentication was successful, redirect to the home page
         if (result)
         {
@@ -95,6 +110,13 @@
         {
             // If the authentication failed, show an error message
             _errorMessage = "Invalid username or password";
+        }
+    }
+    private static class Markdown
+    {
+        public static string ToHtml(string markdownText)
+        {
+            return Markdig.Markdown.ToHtml(markdownText);
         }
     }
 }
