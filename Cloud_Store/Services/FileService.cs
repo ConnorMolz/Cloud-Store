@@ -9,7 +9,7 @@ public interface IFileService
     Task<Stream> GetFileAsync(string path, string fileName);
     Task DeleteFileAsync(string path, string fileName);
     Task CreateFolderAsync(string currentPath, string folderName);
-    Task DeleteFolderAsync(string folderName);
+    Task DeleteFolderAsync(string path, string folderName);
     Task<HomeViewModel> GetFileListAsync(string path);
     string RemoveLastFolder(string path);
 }
@@ -71,9 +71,9 @@ public class FileService : IFileService
         Directory.CreateDirectory(fullPath);
     }
 
-    public async Task DeleteFolderAsync(string folderName)
+    public async Task DeleteFolderAsync(string path, string folderName)
     {
-        string fullPath = Path.Combine(_rootpath, folderName);
+        string fullPath = Path.Combine(path, folderName);
         Directory.Delete(fullPath, true);
     }
 
