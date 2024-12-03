@@ -1,5 +1,11 @@
 # Changelog
 
+## Version: 0.2.0
+
+### Added Features
+- Add a simple file view with edit and download(currently only for .txt files)
+- Put Changelog on the main page
+
 ## Version: 0.1.1
 
 ### Bug fix
