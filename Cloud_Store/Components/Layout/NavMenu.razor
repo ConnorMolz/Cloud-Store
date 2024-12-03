@@ -41,6 +41,14 @@
                 </NavLink>
             </div>
         </AuthorizeView>
-        
+        <div class="version-info mt-auto px-3 py-2 text-muted small bottom-info">
+            <span class="text-white">Version: @Version</span>
+        </div>
     </nav>
+    
 </div>
+
+
+@code {
+    private string Version => typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+}
