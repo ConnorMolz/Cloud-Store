@@ -28,7 +28,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Radzen.Blazor" Version="5.6.10" />
+        <PackageReference Include="Radzen.Blazor" Version="5.6.11" />
         <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.10" />
         <PackageReference Include="System.IO" Version="4.3.0" />
     </ItemGroup>
