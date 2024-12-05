@@ -35,13 +35,41 @@
         {
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body" @onclick="() => { NavigateToFolder(folder); }">
-                        <h5 class="card-title link-underline">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z"/>
-                            </svg>
-                            @folder
-                        </h5>
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0" @onclick="() => NavigateToFolder(folder)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
+                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z"/>
+                                </svg>
+                                @folder
+                            </h5>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm" type="button" id="dropdownMenuButton-@folder" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-@folder">
+                            <!-- Implement later
+                             <li>
+                                    <a class="dropdown-item" href="#" @onclick:preventDefault @onclick="() => DownloadFile(folder)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                                        </svg>
+                                        Download
+                                    </a></li> -->
+                                <li> 
+                                    <a class="dropdown-item" href="#" @onclick:preventDefault @onclick="() => DeleteFolder(folder)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                        </svg>
+                                        Delete
+                                    </a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,6 +178,24 @@
     </div>
 </div>
 
+<div class="modal @(_showFolderWarning ? "show" : "")" tabindex="-1" style="display: @(_showFolderWarning ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Folder</h5>
+                <button type="button" class="btn-close" @onclick="CloseFolderWarning"></button>
+            </div>
+            <div class="modal-body">
+                In the selected folder are files and subfolders. Are you sure you want to delete the folder?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="CloseFolderWarning">Cancel</button>
+                <button type="button" class="btn btn-danger" @onclick="() => DeleteFolderAfterWarning(_currentFolder)">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code
 {
     private HomeViewModel Model { get; set; }
@@ -161,8 +207,9 @@
     public required FileService FileService { get; set; } = new();
     private List<IBrowserFile> _selectedFiles = new();
     private long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5GB
-    private bool _isUploading = false;
-    
+    private bool _isUploading;
+    private bool _showFolderWarning;
+    private string? _currentFolder;
     
     protected override async Task OnInitializedAsync()
     {
@@ -368,5 +415,56 @@
         }
         
         NavigationManager.NavigateTo("/fileview?path=" + filePath + "&back_path=" + _path);
+    }
+    
+    private async Task DeleteFolder(string folder)
+    {
+        try 
+        {
+            // Check if the folder contains files or subfolders
+
+            var folderPath = Path.Combine(_path, folder);
+            var folderContent = FileService.GetFileListAsync(folderPath).Result;
+            if(folderContent.Folders.Count == 0 && folderContent.Files.Count == 0)
+            {
+                await FileService.DeleteFolderAsync(_path, folder);
+                await RefreshFileList();
+                return;
+            }
+            
+            // Implement folder deletion logic
+            _currentFolder = folder;
+            _showFolderWarning = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting folder {folder}: {ex.Message}");
+            // Optionally, add user-friendly error handling or toast notification
+        }
+    }
+    
+    private void CloseFolderWarning()
+    {
+        _showFolderWarning = false;
+        _currentFolder = string.Empty;
+    }
+
+    private async void DeleteFolderAfterWarning(string folder)
+    {
+        try
+        {
+            // Implement folder deletion logic
+            await FileService.DeleteFolderAsync(_path, folder);
+            await RefreshFileList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting folder {folder}: {ex.Message}");
+            // Optionally, add user-friendly error handling or toast notification
+        }
+        finally
+        {
+            CloseFolderWarning();
+        }
     }
 }
