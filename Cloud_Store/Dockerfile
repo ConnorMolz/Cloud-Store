@@ -16,7 +16,18 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "Cloud_Store.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+# Add a new migration stage
+FROM build AS migrations
+WORKDIR "/src/Cloud_Store"
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+RUN dotnet ef migrations add InitialMigration
+RUN dotnet ef database update
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# Copy migration files if needed
+COPY --from=migrations /src/Cloud_Store/Database ./Database
+RUN mkdir Files
 ENTRYPOINT ["dotnet", "Cloud_Store.dll"]
