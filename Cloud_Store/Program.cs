@@ -1,3 +1,6 @@
+using Cloud_Store.Api;
+using Cloud_Store.Api.Middleware;
+using Cloud_Store.Api.Services;
 using Cloud_Store.Components;
 using Cloud_Store.Data;
 using Cloud_Store.Services;
@@ -11,6 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder = InitCoreServicesBuilder(builder);
 
+if (Environment.GetEnvironmentVariable("USE_API") == "true")
+{
+    builder = InitApiServicesBuilder(builder);
+}
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -21,6 +29,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+if (Environment.GetEnvironmentVariable("USE_API") == "true")
+{
+    app = InitApiServicesApp(app);
+}
+else
+{
+    
+}
 app = InitCoreServicesApp(app);
 
 app.Run();
@@ -92,5 +108,46 @@ static WebApplication InitCoreServicesApp(WebApplication app)
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
+    return app;
+}
+
+static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builder)
+{
+    // Register API authentication service
+    builder.Services.AddScoped<IApiAuthService, ApiAuthService>();
+
+    // Define a CORS policy
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigins", policy =>
+        {
+            policy.WithOrigins("*")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+    
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    return builder;
+}
+
+static WebApplication InitApiServicesApp(WebApplication app)
+{
+    // Add Basic Authentication middleware
+    app.UseBasicAuth();
+    
+    // Activate CORS
+    app.UseCors("AllowSpecificOrigins");
+
+    app = Api.CreateApis(app);
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+    
     return app;
 }
