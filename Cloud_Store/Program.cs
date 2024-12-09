@@ -1,4 +1,6 @@
 using Cloud_Store.Api;
+using Cloud_Store.Api.Middleware;
+using Cloud_Store.Api.Services;
 using Cloud_Store.Components;
 using Cloud_Store.Data;
 using Cloud_Store.Services;
@@ -111,6 +113,9 @@ static WebApplication InitCoreServicesApp(WebApplication app)
 
 static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builder)
 {
+    // Register API authentication service
+    builder.Services.AddScoped<IApiAuthService, ApiAuthService>();
+
     // Define a CORS policy
     builder.Services.AddCors(options =>
     {
@@ -122,8 +127,6 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
         });
     });
     
-    // Add services to the container.
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
@@ -132,12 +135,14 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
 
 static WebApplication InitApiServicesApp(WebApplication app)
 {
+    // Add Basic Authentication middleware
+    app.UseBasicAuth();
+    
     // Activate CORS
     app.UseCors("AllowSpecificOrigins");
 
     app = Api.CreateApis(app);
 
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
