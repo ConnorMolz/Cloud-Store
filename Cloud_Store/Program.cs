@@ -11,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder = InitCoreServicesBuilder(builder);
 
+if (Environment.GetEnvironmentVariable("USE_API") == "true")
+{
+    builder = InitApiServicesBuilder(builder);
+}
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -21,6 +26,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+if (Environment.GetEnvironmentVariable("USE_API") == "true")
+{
+    app = InitApiServicesApp(app);
+}
+else
+{
+    
+}
 app = InitCoreServicesApp(app);
 
 app.Run();
@@ -92,5 +105,41 @@ static WebApplication InitCoreServicesApp(WebApplication app)
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
+    return app;
+}
+
+static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builder)
+{
+    // Define a CORS policy
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigins", policy =>
+        {
+            policy.WithOrigins("*")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+    
+    // Add services to the container.
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    return builder;
+}
+
+static WebApplication InitApiServicesApp(WebApplication app)
+{
+    // Activate CORS
+    app.UseCors("AllowSpecificOrigins");
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+    
     return app;
 }
