@@ -1,8 +1,8 @@
-@page "/fileview"
+@page "/textview"
 @using Microsoft.AspNetCore.Authorization
 @using System.Text
 @using Cloud_Store.Models.ViewModels
-@attribute [Authorize(Roles ="User, Administrator")]
+@attribute [Authorize(Roles ="User, Administrator, Owner")]
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
 

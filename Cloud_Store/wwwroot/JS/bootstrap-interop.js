@@ -34,3 +34,48 @@ window.downloadFile = (fileName, base64Data) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
 };
+
+// Requires PDF.js library to be included
+window.renderPdf = function (containerId, base64Pdf) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error('Container not found');
+        return;
+    }
+
+    // Convert base64 to Uint8Array
+    const pdfData = atob(base64Pdf);
+    const pdfBytes = new Uint8Array(pdfData.length);
+    for (let i = 0; i < pdfData.length; i++) {
+        pdfBytes[i] = pdfData.charCodeAt(i);
+    }
+
+    // Use PDF.js to render the document
+    pdfjsLib.getDocument({ data: pdfBytes }).promise.then(function (pdf) {
+        // Render first page
+        pdf.getPage(1).then(function (page) {
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale: scale });
+
+            // Prepare canvas for rendering
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            // Render PDF page into canvas context
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            page.render(renderContext);
+
+            // Clear previous content and add new canvas
+            container.innerHTML = '';
+            container.appendChild(canvas);
+        });
+    }).catch(function (error) {
+        console.error('Error rendering PDF:', error);
+        container.innerHTML = `<div class="alert alert-danger">Error rendering PDF: ${error.message}</div>`;
+    });
+};

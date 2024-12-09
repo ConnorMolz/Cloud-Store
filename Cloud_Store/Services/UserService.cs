@@ -11,6 +11,8 @@ public interface IUserService
     Task AddUserAsync(UserAccount user);
     
     Task UpdateUserAsync(UserAccount user);
+    Task ChangePasswordAsync(string username, string newPassword);
+    Task DeleteUserAsync(string username);
 }
 
 public class UserService: IUserService
@@ -55,6 +57,25 @@ public class UserService: IUserService
             checkUser.Username = user.Username;
             checkUser.Password = user.Password;
             checkUser.Role = user.Role;
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+    
+    public async Task ChangePasswordAsync(string username, string newPassword)
+    {
+        UserAccount? user = _dbContext.UserAccounts.FirstOrDefault(x => x.Username == username);
+        if (user != null)
+        {
+            user.Password = newPassword;
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+    public async Task DeleteUserAsync(string username)
+    {
+        UserAccount? user = _dbContext.UserAccounts.FirstOrDefault(x => x.Username == username);
+        if (user != null)
+        {
+            _dbContext.UserAccounts.Remove(user);
             await _dbContext.SaveChangesAsync();
         }
     }

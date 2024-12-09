@@ -1,3 +1,6 @@
+using Cloud_Store.Api;
+using Cloud_Store.Api.Middleware;
+using Cloud_Store.Api.Services;
 using Cloud_Store.Components;
 using Cloud_Store.Data;
 using Cloud_Store.Services;
@@ -11,16 +14,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder = InitCoreServicesBuilder(builder);
 
+if (Environment.GetEnvironmentVariable("USE_API") == "true")
+{
+    builder = InitApiServicesBuilder(builder);
+}
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+// Initialize API services first if enabled
+if (Environment.GetEnvironmentVariable("USE_API") == "true")
+{
+    app = InitApiServicesApp(app);
+}
+
+// Then initialize core services
 app = InitCoreServicesApp(app);
 
 app.Run();
@@ -45,19 +58,47 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        })
         .AddCookie(options =>
         {
-            options.Cookie.Name = "next_cloud_clone_cookie";
+            options.Cookie.Name = "cloud_store_cookie";
             options.LoginPath = "/";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/access-denied";
             options.ExpireTimeSpan = TimeSpan.FromMinutes(45);
+            
+            options.Events = new CookieAuthenticationEvents
+            {
+                OnRedirectToLogin = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.Headers.Append("WWW-Authenticate", "Basic");
+                        context.Response.StatusCode = 401;
+                        return Task.CompletedTask;
+                    }
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                },
+                OnRedirectToAccessDenied = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.StatusCode = 403;
+                        return Task.CompletedTask;
+                    }
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                }
+            };
         });
 
     // Add the database context
     builder.Services.AddDbContext<CloudStoreContext>(options =>
-        options.UseSqlite("data source=Database/next_cloud_clone.db"));
+        options.UseSqlite("data source=Database/cloud_store.db"));
 
     // Add File, Hashing and User Management Services
     builder.Services.AddScoped<IFileService, FileService>();
@@ -83,14 +124,72 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
 static WebApplication InitCoreServicesApp(WebApplication app)
 {
     app.UseHttpsRedirection();
-
     app.UseAntiforgery();
-    app.UseAuthentication();
-    app.UseAuthorization();
+
+    // Configure authentication/authorization for non-API routes
+    app.UseWhen(
+        context => !context.Request.Path.StartsWithSegments("/api"),
+        builder => 
+        {
+            builder.UseAuthentication();
+            builder.UseAuthorization();
+        }
+    );
 
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
+    return app;
+}
+
+static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builder)
+{
+    // Register API authentication service
+    builder.Services.AddScoped<IApiAuthService, ApiAuthService>();
+
+    // Add API-specific authorization policy
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("ApiPolicy", policy =>
+            policy.AddAuthenticationSchemes("Basic").RequireAuthenticatedUser());
+    });
+
+    // Define CORS policy
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigins", policy =>
+        {
+            policy.WithOrigins("*")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+    
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    return builder;
+}
+
+static WebApplication InitApiServicesApp(WebApplication app)
+{
+    app.UseWhen(
+        context => context.Request.Path.StartsWithSegments("/api"),
+        builder =>
+        {
+            builder.UseBasicAuth();
+            builder.UseCors("AllowSpecificOrigins");
+        }
+    );
+
+    app = Api.CreateApis(app);
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+    
     return app;
 }
