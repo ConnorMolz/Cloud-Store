@@ -28,7 +28,7 @@
             <td>@user.Role</td>
             <td>
                 <button @onclick="@(() => OpenEditUser(user))" class="btn btn-primary">Edit User</button>
-                <button @onclick="@(() => OpenChangePassword(@user.Username))" class="btn btn-danger"></button>
+                <button @onclick="@(() => OpenChangePassword(@user.Username))" class="btn btn-secondary">Change Password</button>
 
                 <!-- <button class="btn btn-danger">Delete</button> -->
             </td>
@@ -99,16 +99,17 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <label for="PasswordChange">New Pasword: </label>
                     <InputText
                         @bind-value="Model.Password"
                         type="password"
                         placeholder="New Password"
-                        ></InputText>
+                        id="PasswordChange"></InputText>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @onclick="CancelChangePassword">Cancel</button>
-                <button type="button" class="btn btn-primary" @onclick="ChangePassword"></button>
+                <button type="button" class="btn btn-danger" @onclick="CancelChangePassword">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="ChangePassword">Change Password</button>
             </div>
         </div>
     </div>
