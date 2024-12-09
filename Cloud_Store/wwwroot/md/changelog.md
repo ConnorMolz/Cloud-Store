@@ -1,5 +1,16 @@
 # Changelog
 
+## Version: 0.3.0
+
+### Added Features
+- Add a REST API to access the files
+- Add a view for PDF files
+- Add an improved User Management with some changes on the Init User
+- Add the option to delete folders
+
+### Bug fix
+- Fix the Docker File and Compose
+
 ## Version: 0.2.0
 
 ### Added Features

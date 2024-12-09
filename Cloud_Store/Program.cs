@@ -21,22 +21,19 @@ if (Environment.GetEnvironmentVariable("USE_API") == "true")
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+// Initialize API services first if enabled
 if (Environment.GetEnvironmentVariable("USE_API") == "true")
 {
     app = InitApiServicesApp(app);
 }
-else
-{
-    
-}
+
+// Then initialize core services
 app = InitCoreServicesApp(app);
 
 app.Run();
@@ -61,7 +58,10 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        })
         .AddCookie(options =>
         {
             options.Cookie.Name = "cloud_store_cookie";
@@ -69,6 +69,31 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/access-denied";
             options.ExpireTimeSpan = TimeSpan.FromMinutes(45);
+            
+            options.Events = new CookieAuthenticationEvents
+            {
+                OnRedirectToLogin = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.Headers.Append("WWW-Authenticate", "Basic");
+                        context.Response.StatusCode = 401;
+                        return Task.CompletedTask;
+                    }
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                },
+                OnRedirectToAccessDenied = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.StatusCode = 403;
+                        return Task.CompletedTask;
+                    }
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                }
+            };
         });
 
     // Add the database context
@@ -99,10 +124,17 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
 static WebApplication InitCoreServicesApp(WebApplication app)
 {
     app.UseHttpsRedirection();
-
     app.UseAntiforgery();
-    app.UseAuthentication();
-    app.UseAuthorization();
+
+    // Configure authentication/authorization for non-API routes
+    app.UseWhen(
+        context => !context.Request.Path.StartsWithSegments("/api"),
+        builder => 
+        {
+            builder.UseAuthentication();
+            builder.UseAuthorization();
+        }
+    );
 
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
@@ -116,7 +148,14 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
     // Register API authentication service
     builder.Services.AddScoped<IApiAuthService, ApiAuthService>();
 
-    // Define a CORS policy
+    // Add API-specific authorization policy
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("ApiPolicy", policy =>
+            policy.AddAuthenticationSchemes("Basic").RequireAuthenticatedUser());
+    });
+
+    // Define CORS policy
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowSpecificOrigins", policy =>
@@ -135,11 +174,14 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
 
 static WebApplication InitApiServicesApp(WebApplication app)
 {
-    // Add Basic Authentication middleware
-    app.UseBasicAuth();
-    
-    // Activate CORS
-    app.UseCors("AllowSpecificOrigins");
+    app.UseWhen(
+        context => context.Request.Path.StartsWithSegments("/api"),
+        builder =>
+        {
+            builder.UseBasicAuth();
+            builder.UseCors("AllowSpecificOrigins");
+        }
+    );
 
     app = Api.CreateApis(app);
 
