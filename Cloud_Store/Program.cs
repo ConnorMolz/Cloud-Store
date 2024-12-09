@@ -1,3 +1,4 @@
+using Cloud_Store.Api;
 using Cloud_Store.Components;
 using Cloud_Store.Data;
 using Cloud_Store.Services;
@@ -133,6 +134,8 @@ static WebApplication InitApiServicesApp(WebApplication app)
 {
     // Activate CORS
     app.UseCors("AllowSpecificOrigins");
+
+    app = Api.CreateApis(app);
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
