@@ -28,6 +28,7 @@
             <td>@user.Role</td>
             <td>
                 <button @onclick="@(() => OpenEditUser(user))" class="btn btn-primary">Edit User</button>
+                <button @onclick="@(() => OpenChangePassword(@user.Username))" class="btn btn-danger"></button>
 
                 <!-- <button class="btn btn-danger">Delete</button> -->
             </td>
@@ -62,13 +63,16 @@
                             class="form-control"
                             id="password"/>
                     }
-                    <label for="role">Role: </label>
-                    <select class="form-control" @bind="Model.Role" id="role">
-                        <option value="">Select Role</option>
-                        <option value="User">User</option>
-                        <option value="Administrator">Administrator</option>
-                        <option value="Disabled">Disable User</option>
-                    </select>
+                    @if (Model.Role != "Owner")
+                    {
+                        <label for="role">Role: </label>
+                        <select class="form-control" @bind="Model.Role" id="role">
+                            <option value="">Select Role</option>
+                            <option value="User">User</option>
+                            <option value="Administrator">Administrator</option>
+                            <option value="Disabled">Disable User</option>
+                        </select>
+                    }
                 </div>
             </div>
             <div class="modal-footer">
@@ -81,6 +85,30 @@
                 {
                     <button type="button" class="btn btn-primary" @onclick="CreateUser">Create</button>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal @(Model.OpenChangePasswordModal ? "show" : "")" tabindex="-1" style="display: @(Model.OpenChangePasswordModal ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password from @Model.Username</h5>
+                <button type="button" class="btn-close" @onclick="CancelChangePassword"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <InputText
+                        @bind-value="Model.Password"
+                        type="password"
+                        placeholder="New Password"
+                        ></InputText>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CancelChangePassword">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="ChangePassword"></button>
             </div>
         </div>
     </div>
@@ -174,5 +202,25 @@
         Model.UserAccounts = UserService.GetUserListAsync().Result;
     }
     */
+    
+    private async Task ChangePassword()
+    {
+        UserService.ChangePasswordAsync(Model.Username, _hashingService.HashPassword(Model.Password));
+        CancelChangePassword();
+    }
+
+    private void CancelChangePassword()
+    {
+        Model.Username = "";
+        Model.Password = "";
+        Model.OpenChangePasswordModal = false;
+    }
+
+    private void OpenChangePassword(string username)
+    {
+        Model.Username = username;
+        Model.Password = "";
+        Model.OpenChangePasswordModal = true;
+    }
 
 }
