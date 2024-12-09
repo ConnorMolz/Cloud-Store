@@ -98,7 +98,7 @@
         {
             Username = Model.Username,
             Password = _hashingService.HashPassword(Model.Password),
-            Role = "Administrator"
+            Role = "Owner"
         };
         
         // Add the user to the database and redirect to the home page for login

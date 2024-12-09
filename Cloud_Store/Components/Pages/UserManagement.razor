@@ -5,7 +5,7 @@
 @using Cloud_Store.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
-@attribute [Authorize(Roles ="Administrator")]
+@attribute [Authorize(Roles ="Administrator, Owner")]
 @inject NavigationManager NavigationManager
 @inject CloudStoreContext DbContext
 @inject UserService UserService
@@ -28,6 +28,11 @@
             <td>@user.Role</td>
             <td>
                 <button @onclick="@(() => OpenEditUser(user))" class="btn btn-primary">Edit User</button>
+                <button @onclick="@(() => OpenChangePassword(@user.Username))" class="btn btn-secondary">Change Password</button>
+                @if(user.Role != "Owner")
+                {
+                    <button @onclick="@(() => OpenDeleteUserWarning(user))" class="btn btn-danger">Delete User</button>
+                }
 
                 <!-- <button class="btn btn-danger">Delete</button> -->
             </td>
@@ -62,13 +67,16 @@
                             class="form-control"
                             id="password"/>
                     }
-                    <label for="role">Role: </label>
-                    <select class="form-control" @bind="Model.Role" id="role">
-                        <option value="">Select Role</option>
-                        <option value="User">User</option>
-                        <option value="Administrator">Administrator</option>
-                        <option value="Disabled">Disable User</option>
-                    </select>
+                    @if (Model.Role != "Owner")
+                    {
+                        <label for="role">Role: </label>
+                        <select class="form-control" @bind="Model.Role" id="role">
+                            <option value="">Select Role</option>
+                            <option value="User">User</option>
+                            <option value="Administrator">Administrator</option>
+                            <option value="Disabled">Disable User</option>
+                        </select>
+                    }
                 </div>
             </div>
             <div class="modal-footer">
@@ -81,6 +89,49 @@
                 {
                     <button type="button" class="btn btn-primary" @onclick="CreateUser">Create</button>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal @(Model.OpenDeleteUserWarning ? "show" : "")" tabindex="-1" style="display: @(Model.OpenDeleteUserWarning ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete User</h5>
+                <button type="button" class="btn-close" @onclick="CloseDeleteUserWarning"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the user @Model.Username?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="CloseDeleteUserWarning">Cancel</button>
+                <button type="button" class="btn btn-danger" @onclick="DeleteUser">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal @(Model.OpenChangePasswordModal ? "show" : "")" tabindex="-1" style="display: @(Model.OpenChangePasswordModal ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password from @Model.Username</h5>
+                <button type="button" class="btn-close" @onclick="CancelChangePassword"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="PasswordChange">New Pasword: </label>
+                    <InputText
+                        @bind-value="Model.Password"
+                        type="password"
+                        placeholder="New Password"
+                        id="PasswordChange"></InputText>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" @onclick="CancelChangePassword">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="ChangePassword">Change Password</button>
             </div>
         </div>
     </div>
@@ -166,13 +217,46 @@
         CancelEditUser();
     }
     
-    /*
-     Implement later
-    private void DeleteUser(UserAccount user)
+    
+    private void DeleteUser()
     {
-        UserService.DeleteUserAsync(user);
+        UserService.DeleteUserAsync(Model.CurrentUser.Username);
         Model.UserAccounts = UserService.GetUserListAsync().Result;
+        CloseDeleteUserWarning();
+        FetchUserList();
     }
-    */
+
+    
+    private async Task ChangePassword()
+    {
+        UserService.ChangePasswordAsync(Model.Username, _hashingService.HashPassword(Model.Password));
+        CancelChangePassword();
+    }
+
+    private void CancelChangePassword()
+    {
+        Model.Username = "";
+        Model.Password = "";
+        Model.OpenChangePasswordModal = false;
+    }
+
+    private void OpenChangePassword(string username)
+    {
+        Model.Username = username;
+        Model.Password = "";
+        Model.OpenChangePasswordModal = true;
+    }
+    
+    private void OpenDeleteUserWarning(UserAccount user)
+    {
+        Model.CurrentUser = user;
+        Model.Username = user.Username;
+        Model.OpenDeleteUserWarning = true;
+    }
+    
+    private void CloseDeleteUserWarning()
+    {
+        Model.OpenDeleteUserWarning = false;
+    }
 
 }

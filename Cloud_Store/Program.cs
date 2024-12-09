@@ -48,7 +48,7 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie(options =>
         {
-            options.Cookie.Name = "next_cloud_clone_cookie";
+            options.Cookie.Name = "cloud_store_cookie";
             options.LoginPath = "/";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/access-denied";
@@ -57,7 +57,7 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
 
     // Add the database context
     builder.Services.AddDbContext<CloudStoreContext>(options =>
-        options.UseSqlite("data source=Database/next_cloud_clone.db"));
+        options.UseSqlite("data source=Database/cloud_store.db"));
 
     // Add File, Hashing and User Management Services
     builder.Services.AddScoped<IFileService, FileService>();

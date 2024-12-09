@@ -17,6 +17,8 @@ public class UserManagementViewModel
     public bool InEditMode { get; set; }
     public bool InCreateMode {get; set;}
     public bool OpenModal { get; set; }
+    public bool OpenChangePasswordModal { get; set; }
+    public bool OpenDeleteUserWarning { get; set; }
     
     // Constructor
     public UserManagementViewModel()
