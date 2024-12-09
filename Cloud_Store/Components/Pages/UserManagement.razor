@@ -29,6 +29,10 @@
             <td>
                 <button @onclick="@(() => OpenEditUser(user))" class="btn btn-primary">Edit User</button>
                 <button @onclick="@(() => OpenChangePassword(@user.Username))" class="btn btn-secondary">Change Password</button>
+                @if(user.Role != "Owner")
+                {
+                    <button @onclick="@(() => OpenDeleteUserWarning(user))" class="btn btn-danger">Delete User</button>
+                }
 
                 <!-- <button class="btn btn-danger">Delete</button> -->
             </td>
@@ -85,6 +89,24 @@
                 {
                     <button type="button" class="btn btn-primary" @onclick="CreateUser">Create</button>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal @(Model.OpenDeleteUserWarning ? "show" : "")" tabindex="-1" style="display: @(Model.OpenDeleteUserWarning ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete User</h5>
+                <button type="button" class="btn-close" @onclick="CloseDeleteUserWarning"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the user @Model.Username?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="CloseDeleteUserWarning">Cancel</button>
+                <button type="button" class="btn btn-danger" @onclick="DeleteUser">Delete</button>
             </div>
         </div>
     </div>
@@ -195,14 +217,15 @@
         CancelEditUser();
     }
     
-    /*
-     Implement later
-    private void DeleteUser(UserAccount user)
+    
+    private void DeleteUser()
     {
-        UserService.DeleteUserAsync(user);
+        UserService.DeleteUserAsync(Model.CurrentUser.Username);
         Model.UserAccounts = UserService.GetUserListAsync().Result;
+        CloseDeleteUserWarning();
+        FetchUserList();
     }
-    */
+
     
     private async Task ChangePassword()
     {
@@ -222,6 +245,18 @@
         Model.Username = username;
         Model.Password = "";
         Model.OpenChangePasswordModal = true;
+    }
+    
+    private void OpenDeleteUserWarning(UserAccount user)
+    {
+        Model.CurrentUser = user;
+        Model.Username = user.Username;
+        Model.OpenDeleteUserWarning = true;
+    }
+    
+    private void CloseDeleteUserWarning()
+    {
+        Model.OpenDeleteUserWarning = false;
     }
 
 }
