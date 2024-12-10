@@ -9,3 +9,5 @@
       - "8081:8081"
     environment:
       - USE_API=true
+    volumes:
+      - ./Files:/app/Files
