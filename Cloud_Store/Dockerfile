@@ -21,6 +21,8 @@ FROM build AS migrations
 WORKDIR "/src/Cloud_Store"
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="${PATH}:/root/.dotnet/tools"
+RUN mkdir "Database"
+RUN touch "Database/cloud_store.db"
 RUN dotnet ef migrations add InitialMigration
 RUN dotnet ef database update
 
