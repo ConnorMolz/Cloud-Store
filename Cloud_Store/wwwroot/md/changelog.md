@@ -1,5 +1,10 @@
 # Changelog
 
+## Version: 0.3.1
+
+### Bug fix
+- Fix the Docker File and Compose
+
 ## Version: 0.3.0
 
 ### Added Features
