@@ -11,3 +11,8 @@
       - USE_API=true
     volumes:
       - ./Files:/app/Files
+  cloud_store.api:
+    image: cloud_store.api
+    build:
+      context: .
+      dockerfile: Cloud_Store.Api/Dockerfile
