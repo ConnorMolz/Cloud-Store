@@ -1,6 +1,3 @@
-using Cloud_Store.Api;
-using Cloud_Store.Api.Middleware;
-using Cloud_Store.Api.Services;
 using Cloud_Store.Components;
 using Cloud_Store.Data;
 using Cloud_Store.Services;
@@ -14,10 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder = InitCoreServicesBuilder(builder);
 
-if (Environment.GetEnvironmentVariable("USE_API") == "true")
-{
-    builder = InitApiServicesBuilder(builder);
-}
 
 var app = builder.Build();
 
@@ -27,11 +20,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Initialize API services first if enabled
-if (Environment.GetEnvironmentVariable("USE_API") == "true")
-{
-    app = InitApiServicesApp(app);
-}
 
 // Then initialize core services
 app = InitCoreServicesApp(app);
@@ -140,56 +128,5 @@ static WebApplication InitCoreServicesApp(WebApplication app)
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
-    return app;
-}
-
-static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builder)
-{
-    // Register API authentication service
-    builder.Services.AddScoped<IApiAuthService, ApiAuthService>();
-
-    // Add API-specific authorization policy
-    builder.Services.AddAuthorization(options =>
-    {
-        options.AddPolicy("ApiPolicy", policy =>
-            policy.AddAuthenticationSchemes("Basic").RequireAuthenticatedUser());
-    });
-
-    // Define CORS policy
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowSpecificOrigins", policy =>
-        {
-            policy.WithOrigins("*")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-    });
-    
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-
-    return builder;
-}
-
-static WebApplication InitApiServicesApp(WebApplication app)
-{
-    app.UseWhen(
-        context => context.Request.Path.StartsWithSegments("/api"),
-        builder =>
-        {
-            builder.UseBasicAuth();
-            builder.UseCors("AllowSpecificOrigins");
-        }
-    );
-
-    app = Api.CreateApis(app);
-
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-    
     return app;
 }

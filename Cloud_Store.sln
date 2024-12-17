@@ -10,6 +10,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloud_Store.Tests", "Cloud_Store.Tests\Cloud_Store.Tests.csproj", "{48152888-6C92-43C0-A924-1FE3914AD1E6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloud_Store.Api", "Cloud_Store.Api\Cloud_Store.Api.csproj", "{CEB2F09A-4344-46EA-92B4-217018C2C820}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F54014B2-539D-4B31-8B9C-D2258FAE63B0} = {F54014B2-539D-4B31-8B9C-D2258FAE63B0}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
