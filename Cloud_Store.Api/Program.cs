@@ -16,6 +16,9 @@ app.Run();
 
 static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builder)
 {
+    builder.Services.AddAuthenticationCore();
+    builder.Services.AddCascadingAuthenticationState();
+    builder.Services.AddAuthorization();
     builder.Services.AddDbContext<CloudStoreContext>(options =>
         options.UseSqlite("data source=../Cloud_Store/Database/cloud_store.db"));
     // Register API authentication service
@@ -50,14 +53,10 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
 
 static WebApplication InitApiServicesApp(WebApplication app)
 {
-    app.UseWhen(
-        context => context.Request.Path.StartsWithSegments("/api"),
-        builder =>
-        {
-            builder.UseBasicAuth();
-            builder.UseCors("AllowSpecificOrigins");
-        }
-    );
+    app.UseCors("AllowSpecificOrigins");
+    app.UseAuthentication();
+    app.UseBasicAuth();
+   
     app.UseHttpsRedirection();
     app = Api.CreateApis(app);
 

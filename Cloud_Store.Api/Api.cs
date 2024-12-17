@@ -56,8 +56,9 @@ public class Api
 
     private static FileService CreateFileService()
     {
+        FileService previousFileService = new FileService();
         string rootPath = Directory.GetCurrentDirectory();
-        rootPath = Path.Combine(_fileService.RemoveLastFolder(rootPath), "Cloud_Store");
+        rootPath = Path.Combine(previousFileService .RemoveLastFolder(rootPath), "Cloud_Store");
         return new FileService(rootPath);
     }
 }
