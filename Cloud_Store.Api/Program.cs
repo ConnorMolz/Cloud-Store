@@ -39,9 +39,10 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
     {
         options.AddPolicy("AllowSpecificOrigins", policy =>
         {
-            policy.WithOrigins("*")
+            policy.SetIsOriginAllowed(origin => true)
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .WithMethods("GET", "POST", "PUT", "DELETE")
+                .AllowCredentials();
         });
     });
     
@@ -53,7 +54,7 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
 
 static WebApplication InitApiServicesApp(WebApplication app)
 {
-    app.UseCors();
+    app.UseCors("AllowSpecificOrigins");
     app.UseAuthentication();
     app.UseBasicAuth();
    
