@@ -23,6 +23,11 @@ public class FileService : IFileService
         _rootpath = Directory.GetCurrentDirectory();
         _rootpath = Path.Combine(_rootpath, "Files");
     }
+    public FileService(string rootpath)
+    {
+        _rootpath = rootpath;
+        _rootpath = Path.Combine(_rootpath, "Files");
+    }
     
     public async Task WriteFileAsync(string currentPath, string fileName, Stream fileStream)
     {

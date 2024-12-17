@@ -1,11 +1,12 @@
 using Cloud_Store.Models.ViewModels;
 using Cloud_Store.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cloud_Store.Api;
 
 public class Api
 {
-    private static FileService _fileService = new();
+    private static readonly FileService _fileService = CreateFileService();
     public static WebApplication CreateApis(WebApplication app)
     {
         // GET File_list
@@ -51,5 +52,12 @@ public class Api
         
 
         return app;
+    }
+
+    private static FileService CreateFileService()
+    {
+        string rootPath = Directory.GetCurrentDirectory();
+        rootPath = Path.Combine(_fileService.RemoveLastFolder(rootPath), "Cloud_Store");
+        return new FileService(rootPath);
     }
 }
