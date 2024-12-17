@@ -1,18 +1,17 @@
 using Cloud_Store.Models.ViewModels;
 using Cloud_Store.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cloud_Store.Api;
 
 public class Api
 {
-    private static readonly FileService _fileService = CreateFileService();
+    private static readonly FileService FileService = CreateFileService();
     public static WebApplication CreateApis(WebApplication app)
     {
         // GET File_list
         app.MapGet("/api/file_list", (string path) =>
         {
-            HomeViewModel homeViewModel = _fileService.GetFileListAsync(path).Result;
+            HomeViewModel homeViewModel = FileService.GetFileListAsync(path).Result;
             return Results.Ok(homeViewModel);
 
         }).WithName("Get Filelist").WithOpenApi();
@@ -20,7 +19,7 @@ public class Api
         // GET File
         app.MapGet("/api/file", (string path, string fileName) =>
         {
-            Stream fileStream = _fileService.GetFileAsync(path, fileName).Result;
+            Stream fileStream = FileService.GetFileAsync(path, fileName).Result;
             return Results.File(fileStream, "application/octet-stream", fileName);
 
         }).WithName("Get File").WithOpenApi();
@@ -28,7 +27,7 @@ public class Api
         // POST File
         app.MapPost("/api/file", async (string currentPath, string fileName, Stream fileStream) =>
         {
-            await _fileService.WriteFileAsync(currentPath, fileName, fileStream);
+            await FileService.WriteFileAsync(currentPath, fileName, fileStream);
             return Results.Ok();
 
         }).WithName("Post File").WithOpenApi();
@@ -36,7 +35,7 @@ public class Api
         // DELETE File
         app.MapDelete("/api/file", (string path, string fileName) =>
         {
-            _fileService.DeleteFileAsync(path, fileName).Wait();
+            FileService.DeleteFileAsync(path, fileName).Wait();
             return Results.Ok();
 
         }).WithName("Delete File").WithOpenApi();
@@ -44,7 +43,7 @@ public class Api
         // POST Folder
         app.MapPost("/api/folder", (string currentPath, string folderName) =>
         {
-            _fileService.CreateFolderAsync(currentPath, folderName).Wait();
+            FileService.CreateFolderAsync(currentPath, folderName).Wait();
             return Results.Ok();
 
         }).WithName("Post Folder").WithOpenApi();

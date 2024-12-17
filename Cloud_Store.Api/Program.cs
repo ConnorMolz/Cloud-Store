@@ -33,7 +33,7 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
         options.AddPolicy("ApiPolicy", policy =>
             policy.AddAuthenticationSchemes("Basic").RequireAuthenticatedUser());
     });
-
+     
     // Define CORS policy
     builder.Services.AddCors(options =>
     {
@@ -53,7 +53,7 @@ static WebApplicationBuilder InitApiServicesBuilder(WebApplicationBuilder builde
 
 static WebApplication InitApiServicesApp(WebApplication app)
 {
-    app.UseCors("AllowSpecificOrigins");
+    app.UseCors();
     app.UseAuthentication();
     app.UseBasicAuth();
    
