@@ -407,7 +407,7 @@
         // Check if the file format is supported to open in the browser
         var fileExtension = Path.GetExtension(filePath).ToLower();
         
-        var supportedExtensions = new List<string> { ".txt", ".pdf" };//, ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg" };
+        var supportedExtensions = new List<string> { ".txt", ".pdf", ".md" };//, ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg" };
 
         if (!supportedExtensions.Contains(fileExtension))
         {
@@ -423,6 +423,9 @@
             case ".pdf":
                 // Navigate to a PDF viewer page
                 NavigationManager.NavigateTo($"/pdfview?path={Uri.EscapeDataString(filePath)}");
+                break;
+            case ".md":
+                NavigationManager.NavigateTo($"/markdownview?path={Uri.EscapeDataString(filePath)}");
                 break;
             default:
                 // Handle other supported file types if needed
