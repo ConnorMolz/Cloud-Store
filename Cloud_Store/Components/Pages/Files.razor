@@ -407,7 +407,7 @@
         // Check if the file format is supported to open in the browser
         var fileExtension = Path.GetExtension(filePath).ToLower();
         
-        var supportedExtensions = new List<string> { ".txt", ".pdf", ".md" };//, ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg" };
+        var supportedExtensions = new List<string> { ".txt", ".pdf", ".md", ".png", ".jpg", ".jpeg", ".gif"};//, ".bmp", ".svg" };
 
         if (!supportedExtensions.Contains(fileExtension))
         {
@@ -418,14 +418,26 @@
         {
             case ".txt":
                 // Navigate to a text file viewer page
-                NavigationManager.NavigateTo($"/textview?path={Uri.EscapeDataString(filePath)}");
+                NavigationManager.NavigateTo($"/textview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
                 break;
             case ".pdf":
                 // Navigate to a PDF viewer page
-                NavigationManager.NavigateTo($"/pdfview?path={Uri.EscapeDataString(filePath)}");
+                NavigationManager.NavigateTo($"/pdfview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
                 break;
             case ".md":
-                NavigationManager.NavigateTo($"/markdownview?path={Uri.EscapeDataString(filePath)}");
+                NavigationManager.NavigateTo($"/markdownview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
+                break;
+            case ".png":
+                NavigationManager.NavigateTo($"/imageview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
+                break;
+            case ".jpg":
+                NavigationManager.NavigateTo($"/imageview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
+                break;
+            case ".jpeg":
+                NavigationManager.NavigateTo($"/imageview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
+                break;
+            case ".gif":
+                NavigationManager.NavigateTo($"/imageview?path={Uri.EscapeDataString(filePath)}&back_path={Uri.EscapeDataString(_path)}");
                 break;
             default:
                 // Handle other supported file types if needed
