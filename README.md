@@ -1,4 +1,4 @@
-## ☁︎ Cloud Store /☁︎
+## ☁︎ Cloud Store ☁︎
 
 A secure and efficient server application written in C# that lets users store, manage, and access files directly on their self-hosted servers. Take full control of your data with this simple yet powerful solution.
 ### 🌟 Features
@@ -21,17 +21,13 @@ Prerequisites
 Clone this repository to your server:
 
     git clone https://github.com/ConnorMolz/Cloud-Store.git
-    cd selfhosted-storage-server
+    cd Cloud-Store
 
-Build the application:
+Run and build the application:
 
-    dotnet build
+    docker compose up -d
 
-Run the application:
-
-    dotnet run --project SelfHostedStorageServer
-
-    Access the application in your browser at http://<your-server-ip>:<port> (default: http://localhost:5000).
+Access the application in your browser at http://<your-server-ip>:<port> (default: http://localhost:8080).
 
 
 ### 🔒 Security Notes
@@ -54,7 +50,7 @@ We welcome contributions! To get started:
 
 ### 📄 License
 
-This project is licensed under the MIT License. See the LICENSE file for more information.
+This project is licensed under the Apache License 2.0. See the LICENSE file for more information.
 ### 📢 Support
 
 Have questions or feedback? Open an issue on GitHub or join the discussions.

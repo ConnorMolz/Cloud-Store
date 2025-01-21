@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Radzen;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,7 @@ if (Environment.GetEnvironmentVariable("USE_API") == "true")
 }
 
 // Then initialize core services
-app = InitCoreServicesApp(app);
+app = InitCoreServicesApp(app, builder);
 
 app.Run();
 
@@ -121,7 +122,7 @@ static WebApplicationBuilder InitCoreServicesBuilder(WebApplicationBuilder build
     return builder;
 }
 
-static WebApplication InitCoreServicesApp(WebApplication app)
+static WebApplication InitCoreServicesApp(WebApplication app, WebApplicationBuilder builder)
 {
     app.UseHttpsRedirection();
     app.UseAntiforgery();
@@ -139,6 +140,14 @@ static WebApplication InitCoreServicesApp(WebApplication app)
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
+    
+    // Give access to the File folder that images can be shown
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(builder.Environment.ContentRootPath, "Files")),
+        RequestPath = "/Files"
+    });
 
     return app;
 }

@@ -1,5 +1,15 @@
 # Changelog
 
+## Version: 0.4.0
+
+### Added Features
+- Add a view for images (.jpg, .jpeg, .png, .gif)
+- Add a view for Markdown files (.md)
+
+### Bug fixes
+- Fix back_path error on all file views
+- Fix READ ME
+
 ## Version: 0.3.1
 
 ### Bug fix
