@@ -5,6 +5,7 @@
 ### Added Features
 - Add a view for mp4 files
 - add support for .svg files
+- Add a simple Markdown Editor
 
 ## Version: 0.4.0
 
