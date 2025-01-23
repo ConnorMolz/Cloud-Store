@@ -1,7 +1,8 @@
-@page "/markdownView"
+@page "/videoview"
 @using Microsoft.AspNetCore.Authorization
 @using System.Text
 @using Cloud_Store.Models.ViewModels
+@using Cloud_Store.Services
 @attribute [Authorize(Roles ="User, Administrator, Owner")]
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
@@ -22,12 +23,6 @@
                     <p class="mb-0">@Path.GetFileName(_path)</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-success me-2" @onclick="SaveFile">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save me-1" viewBox="0 0 16 16">
-                            <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5v0z"/>
-                        </svg>
-                        Save
-                    </button>
                     <button class="btn btn-outline-danger" @onclick="DownloadFile">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-1" viewBox="0 0 16 16">
                             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
@@ -41,13 +36,16 @@
 
         <div class="card mt-3">
             <div class="card-body">
-                @if (!string.IsNullOrEmpty(_model.FileContent) && !string.IsNullOrWhiteSpace(_model.FileContent))
+                <div class="video-container flex justify-center items-center min-h-screen">
+                    <video @ref="videoPlayer" controls class="max-w-full">
+                        <source src="@_cleanedImagePath" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
                 {
-                    <EditForm Model="@_model" FormName="FileForm" Context="editFormContext">
-                        <textarea @bind-value="_model.FileContent" @bind-value:event="oninput" class="form-control" rows="@_rows"></textarea>
-                    </EditForm>
-                    <div id="pdf-container" class="pdf-viewer" style="width: 100%; height: 800px;">
-                        @((MarkupString)Markdown.ToHtml(_model.FileContent))
+                    <div class="alert alert-danger mt-3">
+                        @ErrorMessage
                     </div>
                 }
             </div>
@@ -56,15 +54,19 @@
 </div>
 
 @code{
+    private ElementReference videoPlayer;
+    
     private FileViewModel _model = new ();
-
-    private int _rows;
 
     private string _path = string.Empty;
 
     private string _backroute = string.Empty;
-
+    
     private bool _isDownloading = false;
+    
+    private string _cleanedImagePath = String.Empty;
+    
+    private string ErrorMessage { get; set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -98,7 +100,7 @@
         }
 
         // Call GetFileContent as an async method
-        GetFileContentAsync();
+        GetImage();
     }
 
     private void navigateBack()
@@ -107,54 +109,25 @@
         Navigation.NavigateTo(url);
     }
 
-    private async Task GetFileContentAsync()
+    private async Task GetImage()
     {
         try
         {
-            // Use encoding detection and sanitization
-            byte[] fileBytes = await File.ReadAllBytesAsync(_path);
+            if (!File.Exists(_path))
+            {
+                ErrorMessage = "Image file not found";
+                return;
+            }
 
-            // Detect encoding
-            Encoding encoding = DetectEncoding(fileBytes);
-
-            // Decode with the detected encoding and sanitize
-            _model.FileContent = SanitizeContent(encoding.GetString(fileBytes));
-            Console.WriteLine(_model.FileContent);
-            _rows = _model.FileContent.Split('\n').Length + 5;
-
-            // Ensure the UI updates
-            StateHasChanged();
-        }
-        catch (Exception e)
-        {
-            _model.FileContent = $"Error reading file: {e.Message}";
-            _rows = 5;
-
-            // Ensure the UI updates
-            StateHasChanged();
-        }
-    }
-
-    private async Task SaveFile()
-    {
-        try
-        {
-            // Sanitize content before saving
-            var sanitizedContent = SanitizeContent(_model.FileContent);
-
-            // Use encoding detection
-            Encoding encoding = DetectEncoding(Encoding.UTF8.GetBytes(sanitizedContent));
-
-            // Write the file with the detected encoding
-            await File.WriteAllTextAsync(_path, sanitizedContent, encoding);
-
-            // Optional: Show a success toast or notification
-            await JsRuntime.InvokeVoidAsync("showToast", "File saved successfully", "success");
+            int pathIndex = _path.IndexOf("\\Files");
+            _cleanedImagePath = _path.Substring(pathIndex);
+            Console.WriteLine(_cleanedImagePath);
+            
         }
         catch (Exception ex)
         {
-            // Optional: Show an error toast or notification
-            await JsRuntime.InvokeVoidAsync("showToast", $"Error saving file: {ex.Message}", "danger");
+            ErrorMessage = $"Error loading image: {ex.Message}";
+           
         }
     }
 
@@ -170,15 +143,6 @@
         {
             // Set flag to prevent multiple downloads
             _isDownloading = true;
-
-            // Sanitize content before saving
-            var sanitizedContent = SanitizeContent(_model.FileContent);
-
-            // Use encoding detection
-            Encoding encoding = DetectEncoding(Encoding.UTF8.GetBytes(sanitizedContent));
-
-            // Write the file with the detected encoding
-            await File.WriteAllTextAsync(_path, sanitizedContent, encoding);
 
             // Read file bytes after successful save
             var fileBytes = await File.ReadAllBytesAsync(_path);
@@ -201,36 +165,6 @@
         {
             // Reset the flag to allow future downloads
             _isDownloading = false;
-        }
-    }
-    private Encoding DetectEncoding(byte[] fileBytes)
-    {
-        // Try to detect encoding
-        try
-        {
-            // Use UTF8 by default with fallback
-            return Encoding.UTF8;
-        }
-        catch
-        {
-            // Fallback to default encoding if detection fails
-            return Encoding.Default;
-        }
-    }
-
-    private string SanitizeContent(string content)
-    {
-        // Remove or replace invalid characters
-        return new string(content
-            .Where(c => !char.IsControl(c) || c == '\n' || c == '\r' || c == '\t')
-            .ToArray());
-    }
-    
-    private static class Markdown
-    {
-        public static string ToHtml(string markdownText)
-        {
-            return Markdig.Markdown.ToHtml(markdownText);
         }
     }
 }
