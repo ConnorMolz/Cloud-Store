@@ -1,5 +1,11 @@
 # Changelog
 
+## Version: 0.5.0
+
+### Added Features
+- Add a view for mp4 files
+- add support for .svg files
+
 ## Version: 0.4.0
 
 ### Added Features
