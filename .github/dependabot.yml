@@ -10,7 +10,7 @@ updates:
       - "/Cloud_Store" # Location of package manifests
       - "/Cloud_Store.Tests"
     schedule:
-      interval: "daily"
+      interval: "never"
     reviewers:
       - "ConnorMolz"
     target-branch: "develop"
